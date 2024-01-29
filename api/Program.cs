@@ -1,5 +1,6 @@
 
 using api.Models;
+using api.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,8 @@ builder.Services.AddDbContext<NormalDataBaseContext>(options => {
     string? NormalDataBaseConnectionString = builder.Configuration.GetConnectionString("NormalDataBaseConnection");
     options.UseMySql(NormalDataBaseConnectionString, ServerVersion.AutoDetect(NormalDataBaseConnectionString));
 });
+
+builder.Services.AddScoped<ITest, Test>();
 
 var app = builder.Build();
 
