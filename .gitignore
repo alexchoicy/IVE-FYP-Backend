@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+#MQTT LOG
+mosquitto.log
+
 appsettings.json
 appsettings.Development.json
 

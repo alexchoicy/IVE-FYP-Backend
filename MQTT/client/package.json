@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "mqtt": "^5.3.5"
+  }
+}

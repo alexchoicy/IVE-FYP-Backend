@@ -1,12 +1,15 @@
-
 using api.Models;
 using api.Services;
+using api.utils;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddApiVersioning();
+builder.Services.AddSingleton<MqttClientservices>();
+builder.Services.AddHostedService<MqttHostedService>();
+
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

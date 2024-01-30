@@ -18,10 +18,13 @@ namespace api.Controllers
         private readonly NormalDataBaseContext _context;
         private readonly ITest _test;
 
-        public Test(NormalDataBaseContext context, ITest test)
+        private readonly MqttClientservices _mqttClientservices;
+
+        public Test(NormalDataBaseContext context, ITest test, MqttClientservices mqttClientservices)
         {
             _context = context;
             _test = test;
+            _mqttClientservices = mqttClientservices;
         }
 
         [HttpGet]
@@ -41,10 +44,11 @@ namespace api.Controllers
             }
         }
 
-        [HttpGet("/test")]
+        [HttpGet("testing")]
         public IActionResult test()
         {
-            return Ok("test");
+            _ = _mqttClientservices.PublishAsync("plate", "test");
+            return Ok();
         }
     }
 }

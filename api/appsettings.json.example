@@ -9,5 +9,10 @@
   "AllowedHosts": "*",
   "ConnectionStrings": {
     "NormalDataBaseConnection": "Server=; user=; password=; database="
-  }
+  },
+  "MqttClientOptions" : {
+      "ServerIP" : "localhost",
+      "Port" : 1883,
+      "ClientId" : "api"
+    }
 }
