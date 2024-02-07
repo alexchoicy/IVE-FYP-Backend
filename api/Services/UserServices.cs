@@ -33,10 +33,10 @@ namespace api.Services
             {
                 userID = user.userID,
                 userName = user.userName,
-                email = user.email,
-                firstName = user.firstName,
-                lastName = user.lastName,
-                phoneNumber = user.phoneNumber,
+                email = user.email ?? "you have not set email yet",
+                firstName = user.firstName ?? "you have not set first name yet",
+                lastName = user.lastName ?? "you have not set last name yet",
+                phoneNumber = user.phoneNumber ?? "you have not set phone number yet",
                 createdAt = user.createdAt,
                 isActive = user.isActive
             };
