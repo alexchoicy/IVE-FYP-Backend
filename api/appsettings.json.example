@@ -14,5 +14,10 @@
       "ServerIP" : "localhost",
       "Port" : 1883,
       "ClientId" : "api"
-    }
+    },
+  "Jwt": {
+    "Key": "",
+    "Issuer": "",
+    "Audience": ""
+  }
 }
