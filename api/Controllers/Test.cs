@@ -28,18 +28,18 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Models.Entity.User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<Models.Entity.NormalDB.Users>>> GetUsers()
         {
-            ApiResponse<IEnumerable<Models.Entity.User>> response = new ApiResponse<IEnumerable<Models.Entity.User>>();
+            ApiResponse<IEnumerable<Models.Entity.NormalDB.Users>> response = new ApiResponse<IEnumerable<Models.Entity.NormalDB.Users>>();
             try
             {
                 response.Data = await _test.GetUser();
                 return Ok(response);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 response.Success = false;
-                response.ErrorMessage = "Error while getting users";
+                response.ErrorMessage = ex.Message;
                 return BadRequest(response);   
             }
         }

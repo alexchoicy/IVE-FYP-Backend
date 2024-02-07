@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Models.Entity;
+using api.Models.Entity.NormalDB;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Models
@@ -11,6 +11,6 @@ namespace api.Models
     {
         public NormalDataBaseContext(DbContextOptions dbContextOptions) : base(dbContextOptions){}
 
-        public DbSet<User> User { get; set; } 
+        public DbSet<Users> users { get; set; } 
     }
 }
