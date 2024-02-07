@@ -37,7 +37,6 @@ namespace api.utils
             List<Claim> claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.NameId, users.userID.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, users.email),
             };
 
             SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);

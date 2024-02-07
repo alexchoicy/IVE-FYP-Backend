@@ -20,26 +20,55 @@ namespace api.Services
     {
         private readonly NormalDataBaseContext normalDataBaseContext;
 
-        private readonly JWTServices jWTServices;
-        public AuthServices(NormalDataBaseContext normalDataBaseContext, JWTServices jWTServices)
+        private readonly JWTServices jwtServices;
+        public AuthServices(NormalDataBaseContext normalDataBaseContext, JWTServices jwtServices)
         {
             this.normalDataBaseContext = normalDataBaseContext;
-            this.jWTServices = jWTServices;
+            this.jwtServices = jwtServices;
         }
 
         public AuthResponeDto? login(LoginRequestDto loginRequestDto)
         {
 
-            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.userName && x.password == loginRequestDto.password);
+            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.userName);
             
             if (user == null)
             {
                 return null;
             }
 
+            if (user.password != loginRequestDto.password)
+            {
+                user.loginAttempts++;
+                if (user.loginAttempts >= 3)
+                {
+                    user.isLocked = true;
+                    user.lockUntil = DateTime.Now.AddMinutes(5);
+                }
+                normalDataBaseContext.SaveChanges();
+                return null;
+            }
+
+            if (!user.isActive)
+            {
+                return null;
+            }
+
+            if (user.isLocked)
+            {
+                if (user.lockUntil > DateTime.Now)
+                {
+                    return null;
+                }
+                user.isLocked = false;
+                user.lockUntil = null;
+                user.loginAttempts = 0;
+                normalDataBaseContext.SaveChanges();
+            }
+
             AuthResponeDto response = new AuthResponeDto
             {
-                Token = jWTServices.CreateToken(user),
+                Token = jwtServices.CreateToken(user),
                 userName = user.userName,
                 email = user.email ?? "you have not set email yet",
                 firstName = user.firstName ?? "you have not set first name yet",
@@ -49,5 +78,6 @@ namespace api.Services
 
             return response;
         }
+
     }
 }

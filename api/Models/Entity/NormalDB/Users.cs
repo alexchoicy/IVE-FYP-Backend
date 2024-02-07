@@ -18,5 +18,8 @@ namespace api.Models.Entity.NormalDB
         public string? email { get; set; }
         public required DateTime createdAt { get; set; }
         public required bool isActive { get; set; }
+        public required bool isLocked { get; set; }
+        public required int loginAttempts { get; set; }
+        public DateTime? lockUntil { get; set; }
     }
 }

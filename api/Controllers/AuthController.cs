@@ -12,10 +12,12 @@ namespace api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthServices authServices;
+        private readonly IUserServices userServices;
 
-        public AuthController(IAuthServices authServices)
+        public AuthController(IAuthServices authServices, IUserServices userServices)
         {
             this.authServices = authServices;
+            this.userServices = userServices;
         }
 
         [HttpPost("login")]
@@ -28,6 +30,26 @@ namespace api.Controllers
                 response.Success = false;
                 return BadRequest(response);
             }
+            if (!userServices.IsUserExists(loginRequestDto.userName))
+            {
+                response.ErrorMessage = "The User is not exit";
+                response.Success = false;
+                return NotFound(response);
+            }
+            if (!userServices.isUserActive(loginRequestDto.userName))
+            {
+                response.ErrorMessage = "The User is not active";
+                response.Success = false;
+                return Unauthorized(response);
+            }
+            if (userServices.IsUserLockedOut(loginRequestDto.userName))
+            {
+                var lockoutEnd = userServices.GetLockoutEndDate(loginRequestDto.userName);
+                var remainingTime = lockoutEnd - DateTime.Now;
+                response.ErrorMessage = $"Your account is locked. Please try again in {Math.Round(remainingTime.TotalMinutes)} minutes.";
+                response.Success = false;
+                return Unauthorized(response);
+            }
             AuthResponeDto? data = authServices.login(loginRequestDto);
             if (data == null)
             {
@@ -36,7 +58,7 @@ namespace api.Controllers
                 return Unauthorized(response);
             }
             response.Data = data;
-            return Ok(response); 
+            return Ok(response);
         }
     }
 }

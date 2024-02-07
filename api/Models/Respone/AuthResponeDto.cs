@@ -13,6 +13,5 @@ namespace api.Models.Respone
         public required string firstName { get; set; }
         public required string lastName { get; set; }
         public required string email { get; set; }
-        public DateTime createdAt { get; set; }
     }
 }

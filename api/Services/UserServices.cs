@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using api.Models;
 using api.Models.Entity.NormalDB;
@@ -11,8 +12,12 @@ namespace api.Services
     public interface IUserServices
     {
         UserResponeDto? userInfo(string userName);
+        bool IsUserExists(string userName);
+        bool isUserActive(string userName);
+        bool IsUserLockedOut(string userName);
+        DateTime GetLockoutEndDate(string userName);
     }
-    
+
     public class UserServices : IUserServices
     {
         private readonly NormalDataBaseContext normalDataBaseContext;
@@ -42,5 +47,26 @@ namespace api.Services
             };
         }
 
+        public bool IsUserExists(string userName)
+        {
+            return normalDataBaseContext.users.Any(x => x.userName == userName);
+        }
+
+        public bool isUserActive(string userName)
+        {
+            return normalDataBaseContext.users.Any(x => x.userName == userName && x.isActive);
+        }
+
+        public bool IsUserLockedOut(string userName)
+        {
+            var user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == userName);
+            return user != null && user.lockUntil > DateTime.Now;
+        }
+
+        public DateTime GetLockoutEndDate(string userName)
+        {
+            var user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == userName);
+            return user?.lockUntil ?? DateTime.Now;
+        }
     }
 }
