@@ -8,6 +8,7 @@ using api.Models.Entity.NormalDB;
 using api.Models.Request;
 using api.Models.Respone;
 using api.utils;
+using static api.Exceptions.AuthException;
 
 namespace api.Services
 {
@@ -30,11 +31,23 @@ namespace api.Services
         public AuthResponeDto? login(LoginRequestDto loginRequestDto)
         {
 
+
             Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.userName);
-            
+
             if (user == null)
             {
-                return null;
+                throw new UserNotFoundException("The User does not exist");
+            }
+
+            if (!user.isActive)
+            {
+                throw new UserNotActiveException("The User is not active");
+            }
+
+            if (user.isLocked && user.lockUntil > DateTime.Now)
+            {
+                var remainingTime = user.lockUntil.Value - DateTime.Now;
+                throw new UserLockedException($"Your account is locked. Please try again in {Math.Round(remainingTime.TotalMinutes)} minutes.");
             }
 
             if (user.password != loginRequestDto.password)
@@ -46,12 +59,15 @@ namespace api.Services
                     user.lockUntil = DateTime.Now.AddMinutes(5);
                 }
                 normalDataBaseContext.SaveChanges();
-                return null;
+                throw new InvalidCredentialsException("The username or password is incorrect");
             }
 
-            if (!user.isActive)
+            if (user.isLocked)
             {
-                return null;
+                user.isLocked = false;
+                user.lockUntil = null;
+                user.loginAttempts = 0;
+                normalDataBaseContext.SaveChanges();
             }
 
             if (user.isLocked)

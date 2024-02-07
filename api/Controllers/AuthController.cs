@@ -3,6 +3,7 @@ using api.Models.Respone;
 using api.Services;
 using api.utils;
 using Microsoft.AspNetCore.Mvc;
+using static api.Exceptions.AuthException;
 
 namespace api.Controllers
 {
@@ -30,35 +31,36 @@ namespace api.Controllers
                 response.Success = false;
                 return BadRequest(response);
             }
-            if (!userServices.IsUserExists(loginRequestDto.userName))
+            try
             {
-                response.ErrorMessage = "The User is not exit";
+                AuthResponeDto? data = authServices.login(loginRequestDto);
+                response.Data = data;
+                return Ok(response);
+            }
+            catch (UserNotFoundException ex)
+            {
+                response.ErrorMessage = ex.Message;
                 response.Success = false;
                 return NotFound(response);
             }
-            if (!userServices.isUserActive(loginRequestDto.userName))
+            catch (UserNotActiveException ex)
             {
-                response.ErrorMessage = "The User is not active";
+                response.ErrorMessage = ex.Message;
                 response.Success = false;
                 return Unauthorized(response);
             }
-            if (userServices.IsUserLockedOut(loginRequestDto.userName))
+            catch (UserLockedException ex)
             {
-                var lockoutEnd = userServices.GetLockoutEndDate(loginRequestDto.userName);
-                var remainingTime = lockoutEnd - DateTime.Now;
-                response.ErrorMessage = $"Your account is locked. Please try again in {Math.Round(remainingTime.TotalMinutes)} minutes.";
+                response.ErrorMessage = ex.Message;
                 response.Success = false;
                 return Unauthorized(response);
             }
-            AuthResponeDto? data = authServices.login(loginRequestDto);
-            if (data == null)
+            catch (InvalidCredentialsException ex)
             {
-                response.ErrorMessage = "The username or password is incorrect";
+                response.ErrorMessage = ex.Message;
                 response.Success = false;
                 return Unauthorized(response);
             }
-            response.Data = data;
-            return Ok(response);
         }
     }
 }
