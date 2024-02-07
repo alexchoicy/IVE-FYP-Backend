@@ -26,14 +26,26 @@ namespace api.Controllers
         public IActionResult GetUserInfo()
         {
             ApiResponse<UserResponeDto> response = new ApiResponse<UserResponeDto>();
-            if (httpContextAccessor.HttpContext.User == null)
+            if (httpContextAccessor.HttpContext?.User == null)
             {
                 response.ErrorMessage = "You are unauthorized";
                 response.Success = false;
                 return Unauthorized(response);
             }
-            string userid = httpContextAccessor.HttpContext.User.getUserID();
-            UserResponeDto user = userServices.userInfo(userid);
+            string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+            if (userid == "")
+            {
+                response.ErrorMessage = "Some Error Occured, Please try again later.";
+                response.Success = false;
+                return BadRequest(response);
+            }
+            UserResponeDto? user = userServices.userInfo(userid);
+            if (user == null)
+            {
+                response.ErrorMessage = "User not found";
+                response.Success = false;
+                return NotFound(response);
+            }
             response.Data = user;
             return Ok(response);
         }

@@ -10,7 +10,7 @@ namespace api.Services
 {
     public interface IUserServices
     {
-        UserResponeDto userInfo(string userName);
+        UserResponeDto? userInfo(string userName);
     }
     
     public class UserServices : IUserServices
@@ -21,7 +21,7 @@ namespace api.Services
             this.normalDataBaseContext = normalDataBaseContext;
         }
 
-        public UserResponeDto userInfo(string userID)
+        public UserResponeDto? userInfo(string userID)
         {
             int id = Convert.ToInt32(userID);
             Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userID == id);

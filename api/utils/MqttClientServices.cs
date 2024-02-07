@@ -18,8 +18,7 @@ namespace api.utils
 
         public MqttClientservices(IConfiguration configuration){
             this.configuration = configuration;
-
-            ClientId = configuration.GetValue<string>("MqttClientOptions:ClientId");
+            ClientId = configuration.GetValue<string>("MqttClientOptions:ClientId") ?? Guid.NewGuid().ToString();
 
             mqttconfig = new MqttClientOptionsBuilder()
                 .WithTcpServer(configuration.GetValue<string>("MqttClientOptions:ServerIP"), configuration.GetValue<int>("MqttClientOptions:Port"))
@@ -71,7 +70,7 @@ namespace api.utils
             // The client will listen to the message that send by itself
                 Console.WriteLine("Received application message.");
                 string topic = e.ApplicationMessage.Topic;
-                string message = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                string message = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
                 Console.WriteLine(message);
                 return Task.CompletedTask;
         }

@@ -15,10 +15,21 @@ namespace api.utils
     {
         private readonly IConfiguration config;
         private readonly SymmetricSecurityKey key;
+        private readonly string issuer;
+        private readonly string audience;
         public JWTServices(IConfiguration config)
         {
             this.config = config;
-            key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]));
+            string config_key = config["Jwt:Key"] ?? "";
+            string config_issuer = config["Jwt:Issuer"] ?? "";
+            string config_audience = config["Jwt:Audience"] ?? "";
+            if (config_key == "" || config_issuer == "" || config_audience == "")
+            {
+                throw new Exception("JWT Key, Issuer, Audience is not found in appsettings.json");
+            }
+            this.issuer = config_issuer;
+            this.audience = config_audience;
+            key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config_key));
         }
 
         public string CreateToken(Users users, int expireDays = 30)
@@ -36,8 +47,8 @@ namespace api.utils
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.Now.AddDays(expireDays),
                 SigningCredentials = credentials,
-                Issuer = config["Jwt:Issuer"],
-                Audience = config["Jwt:Audience"]
+                Issuer = issuer,
+                Audience = audience
             };
 
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -51,10 +62,11 @@ namespace api.utils
     }
     public static class JWTServicesExtension
     {
-        public static string getUserID(this ClaimsPrincipal user)
+        public static string? getUserID(this ClaimsPrincipal user)
         {
             return user.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
         }
+        
         public static string getAllCliams(this ClaimsPrincipal user)
         {
             string result = "";

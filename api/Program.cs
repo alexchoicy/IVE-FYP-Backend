@@ -78,6 +78,12 @@ builder.Services.AddAuthentication(options =>
     options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
+    string jwtkey = builder.Configuration["JWT:Key"] ?? "";
+    if (jwtkey == "")
+    {
+        throw new Exception("JWT Key is not set");
+    }
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -86,7 +92,7 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["JWT:Audience"],
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(
-        System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"])),
+        System.Text.Encoding.UTF8.GetBytes(jwtkey)),
         ValidateLifetime = true,
     };
     options.Events = new JwtBearerEvents

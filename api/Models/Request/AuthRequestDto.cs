@@ -7,7 +7,7 @@ namespace api.Models.Request
 {
     public class LoginRequestDto
     {
-        public string userName { get; set; }
-        public string password { get; set; }
+        public required string userName { get; set; }
+        public required string password { get; set; }
     }    
 }

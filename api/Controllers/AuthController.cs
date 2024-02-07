@@ -28,7 +28,7 @@ namespace api.Controllers
                 response.Success = false;
                 return BadRequest(response);
             }
-            AuthResponeDto data = authServices.login(loginRequestDto);
+            AuthResponeDto? data = authServices.login(loginRequestDto);
             if (data == null)
             {
                 response.ErrorMessage = "The username or password is incorrect";

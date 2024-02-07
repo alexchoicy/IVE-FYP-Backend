@@ -11,12 +11,12 @@ namespace api.Models.Entity.NormalDB
         [Key]
         public int userID { get; set; }
         public required string userName { get; set; }
-        public required string phoneNumber { get; set; }
-        public required string firstName { get; set; }
-        public required string lastName { get; set; }
+        public string? phoneNumber { get; set; }
+        public string? firstName { get; set; }
+        public string? lastName { get; set; }
         public required string password { get; set; }
-        public required string email { get; set; }
-        public DateTime createdAt { get; set; }
-        public bool isActive { get; set; }
+        public string? email { get; set; }
+        public required DateTime createdAt { get; set; }
+        public required bool isActive { get; set; }
     }
 }

@@ -13,7 +13,7 @@ namespace api.Services
 {
     public interface IAuthServices
     {
-        AuthResponeDto login(LoginRequestDto loginRequestDto);
+        AuthResponeDto? login(LoginRequestDto loginRequestDto);
     }
 
     public class AuthServices : IAuthServices
@@ -27,7 +27,7 @@ namespace api.Services
             this.jWTServices = jWTServices;
         }
 
-        public AuthResponeDto login(LoginRequestDto loginRequestDto)
+        public AuthResponeDto? login(LoginRequestDto loginRequestDto)
         {
 
             Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.userName && x.password == loginRequestDto.password);

@@ -7,7 +7,7 @@ namespace api.Models.Respone
 {
     public class AuthResponeDto
     {
-        public string Token { get; set; }
+        public required string Token { get; set; }
         public required string userName { get; set; }
         public required string phoneNumber { get; set; }
         public required string firstName { get; set; }
