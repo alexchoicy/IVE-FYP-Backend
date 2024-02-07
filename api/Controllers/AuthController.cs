@@ -33,7 +33,7 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "The username or password is incorrect";
                 response.Success = false;
-                return BadRequest(response);
+                return Unauthorized(response);
             }
             response.Data = data;
             return Ok(response); 
