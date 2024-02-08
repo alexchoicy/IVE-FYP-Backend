@@ -93,9 +93,9 @@ namespace api.utils
         }
         public static string? getUserIDByToken(string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
-            return securityToken?.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new Exception("Invalid Token");
+            return securityToken?.Claims.FirstOrDefault(x => x.Type == "nameid")?.Value;
         }
         
         public static string? getType(this ClaimsPrincipal user)
@@ -105,15 +105,26 @@ namespace api.utils
 
         public static string? getTypeByToken(string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new Exception("Invalid Token");
             return securityToken?.Claims.FirstOrDefault(x => x.Type == "type")?.Value;
         } 
 
         public static string getAllCliams(this ClaimsPrincipal user)
         {
             string result = "";
-            foreach (var claim in user.Claims)
+            foreach (Claim claim in user.Claims)
+            {
+                result += $"{claim.Type}: {claim.Value}\n";
+            }
+            return result;
+        }
+        public static string getAllCliamsByToken(string token)
+        {
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new Exception("Invalid Token");
+            string result = "";
+            foreach (Claim claim in securityToken.Claims)
             {
                 result += $"{claim.Type}: {claim.Value}\n";
             }

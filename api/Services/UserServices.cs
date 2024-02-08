@@ -59,13 +59,13 @@ namespace api.Services
 
         public bool IsUserLockedOut(string userName)
         {
-            var user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == userName);
+            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == userName);
             return user != null && user.lockUntil > DateTime.Now;
         }
 
         public DateTime GetLockoutEndDate(string userName)
         {
-            var user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == userName);
+            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == userName);
             return user?.lockUntil ?? DateTime.Now;
         }
     }

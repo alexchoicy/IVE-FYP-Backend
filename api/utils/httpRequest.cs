@@ -10,10 +10,10 @@ namespace api.utils
         {
             using (HttpClient client = new HttpClient())
             {
-                var jsonData = JsonConvert.SerializeObject(data);
-                var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-                var response = await client.PostAsync(url, content);
-                var result = await response.Content.ReadAsStringAsync();
+                string jsonData = JsonConvert.SerializeObject(data);
+                StringContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await client.PostAsync(url, content);
+                string result = await response.Content.ReadAsStringAsync();
                 return result;
             }
         }

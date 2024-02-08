@@ -55,7 +55,7 @@ namespace api.Services
 
             if (user.isLocked && user.lockUntil > DateTime.Now)
             {
-                var remainingTime = user.lockUntil.Value - DateTime.Now;
+                TimeSpan remainingTime = user.lockUntil.Value - DateTime.Now;
                 throw new UserLockedException($"Your account is locked. Please try again in {Math.Round(remainingTime.TotalMinutes)} minutes.");
             }
 
@@ -152,16 +152,19 @@ namespace api.Services
                 throw new UserNotFoundException("The User does not exist");
             }
 
-            String token = jwtServices.CreateTokenForReset(user);
+            string token = jwtServices.CreateTokenForReset(user);
 
-            string url = config.GetValue<string>("ResetPasswordUrl");
-            
+            string url = config.GetValue<string>("ResetPasswordUrl") ?? "";
+            if (url == "")
+            {
+                throw new Exception("ResetPasswordUrl is not found in appsettings.json");
+            }
             var data = new
             {
                 content = token
             };
 
-            var result = httpRequest.MakePostRequest(url, data).Result;
+            string result = httpRequest.MakePostRequest(url, data).Result;
             if (result == "Success")
             {
                 return true;
@@ -172,13 +175,13 @@ namespace api.Services
         }
         public bool resetPasswordVeify(ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto)
         {
-            string userid = JWTServicesExtension.getUserIDByToken(resetPasswordVeifyRequestDto.token);
+            string userid = JWTServicesExtension.getUserIDByToken(resetPasswordVeifyRequestDto.token) ?? "";
             if (userid == "")
             {
                 throw new InvalidCredentialsException("The token is invalid");
             }
 
-            string type = JWTServicesExtension.getTypeByToken(resetPasswordVeifyRequestDto.token);
+            string type = JWTServicesExtension.getTypeByToken(resetPasswordVeifyRequestDto.token) ?? "";
 
             if (type != "password-reset")
             {
