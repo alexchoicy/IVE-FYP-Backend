@@ -84,6 +84,12 @@ namespace api.Controllers
                 response.Success = false;
                 return BadRequest(response);
             }
+            catch (InvalidCredentialsException ex)
+            {
+                response.ErrorMessage = ex.Message;
+                response.Success = false;
+                return BadRequest(response);
+            }
         }
 
         [HttpPost("reset_password")]

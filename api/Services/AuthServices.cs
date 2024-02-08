@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Principal;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using api.Models;
 using api.Models.Entity.NormalDB;
@@ -36,7 +37,7 @@ namespace api.Services
             this.config = config;
             this.httpContextAccessor = httpContextAccessor;
         }
-        
+
         public AuthResponeDto? login(LoginRequestDto loginRequestDto)
         {
 
@@ -115,6 +116,11 @@ namespace api.Services
                 throw new UserAlreadyExistException("The User already exist");
             }
 
+            if (!passwordStrengthChecker(registerRequestDto.password))
+            {
+                throw new InvalidCredentialsException("The password is not strong enough, please make your password longer than 8 characters, and include at least one number, one uppercase letter, and one lowercase letter.");
+            }
+
             String salt = hashServices.saltGenerator();
             String hashedPassword = hashServices.HashPassword(registerRequestDto.password, salt);
             Users newUser = new Users
@@ -168,7 +174,8 @@ namespace api.Services
             if (result == "Success")
             {
                 return true;
-            } else
+            }
+            else
             {
                 return false;
             }
@@ -187,8 +194,9 @@ namespace api.Services
             {
                 throw new InvalidCredentialsException("The token Type incorrect");
             }
+
             string time = JWTServicesExtension.getExpireTimeByToken(resetPasswordVeifyRequestDto.token) ?? "";
-            Console.WriteLine(time);
+
             if (time == "")
             {
                 throw new InvalidCredentialsException("The token is invalid");
@@ -198,14 +206,19 @@ namespace api.Services
             {
                 throw new InvalidCredentialsException("The token is expired");
             }
-            
+
+            if (!passwordStrengthChecker(resetPasswordVeifyRequestDto.newPassword))
+            {
+                throw new InvalidCredentialsException("The password is not strong enough, please make your password longer than 8 characters, and include at least one number, one uppercase letter, and one lowercase letter.");
+            }
+
             Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userID == int.Parse(userid));
 
             if (user == null)
             {
                 throw new UserNotFoundException("The User does not exist");
             }
-
+            
             string salt = hashServices.saltGenerator();
             string hashedPassword = hashServices.HashPassword(resetPasswordVeifyRequestDto.newPassword, salt);
 
@@ -214,6 +227,22 @@ namespace api.Services
             normalDataBaseContext.SaveChanges();
 
             return true;
+        }
+
+        public bool passwordStrengthChecker(string password)
+        {
+
+            var hasNumber = new Regex(@"[0-8]+");
+            var hasUpperChar = new Regex(@"[A-Z]+");
+            var hasLowerChar = new Regex(@"[a-z]+");
+
+            bool isValid =
+                password.Length >= 8 &&
+                hasNumber.IsMatch(password) &&
+                hasUpperChar.IsMatch(password) &&
+                hasLowerChar.IsMatch(password);
+
+            return isValid;
         }
     }
 }
