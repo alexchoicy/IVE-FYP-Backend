@@ -9,7 +9,6 @@ using api.Models;
 using api.Models.Entity.NormalDB;
 using api.Models.Request;
 using api.Models.Respone;
-using static api.Exceptions.AuthException;
 
 namespace api.Services
 {
