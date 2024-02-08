@@ -3,7 +3,7 @@ using api.Models.Respone;
 using api.Services;
 using api.utils;
 using Microsoft.AspNetCore.Mvc;
-using static api.Exceptions.AuthException;
+using api.Exceptions;
 
 namespace api.Controllers
 {

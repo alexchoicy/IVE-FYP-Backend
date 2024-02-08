@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 
 namespace api.Exceptions
 {
-    public class AuthException
-    {
         public class UserNotFoundException : Exception
         {
             public UserNotFoundException(string message) : base(message)
@@ -40,5 +38,4 @@ namespace api.Exceptions
             {
             }
         }
-    }
 }

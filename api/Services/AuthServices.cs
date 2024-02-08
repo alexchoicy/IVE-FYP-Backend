@@ -5,12 +5,12 @@ using System.Runtime.CompilerServices;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using api.Exceptions;
 using api.Models;
 using api.Models.Entity.NormalDB;
 using api.Models.Request;
 using api.Models.Respone;
 using api.utils;
-using static api.Exceptions.AuthException;
 
 namespace api.Services
 {
@@ -114,7 +114,7 @@ namespace api.Services
                 throw new UserAlreadyExistException("The User already exist");
             }
 
-            if (!passwordStrengthChecker(registerRequestDto.password))
+            if (!isValidPassword(registerRequestDto.password))
             {
                 throw new InvalidCredentialsException("The password is not strong enough, please make your password longer than 8 characters, and include at least one number, one uppercase letter, and one lowercase letter.");
             }
@@ -205,7 +205,7 @@ namespace api.Services
                 throw new InvalidCredentialsException("The token is expired");
             }
 
-            if (!passwordStrengthChecker(resetPasswordVeifyRequestDto.newPassword))
+            if (!isValidPassword(resetPasswordVeifyRequestDto.newPassword))
             {
                 throw new InvalidCredentialsException("The password is not strong enough, please make your password longer than 8 characters, and include at least one number, one uppercase letter, and one lowercase letter.");
             }
@@ -227,18 +227,18 @@ namespace api.Services
             return true;
         }
 
-        public bool passwordStrengthChecker(string password)
+        public bool isValidPassword(string password, int minLegth = 8)
         {
 
-            var hasNumber = new Regex(@"[0-8]+");
-            var hasUpperChar = new Regex(@"[A-Z]+");
-            var hasLowerChar = new Regex(@"[a-z]+");
+            var hasNumberRegex = @"[0-8]+";
+            var hasUpperCharRegex = @"[A-Z]+";
+            var hasLowerChar = @"[a-z]+";
 
             bool isValid =
-                password.Length >= 8 &&
-                hasNumber.IsMatch(password) &&
-                hasUpperChar.IsMatch(password) &&
-                hasLowerChar.IsMatch(password);
+                password.Length >= minLegth &&
+                Regex.IsMatch(password, hasNumberRegex) &&
+                Regex.IsMatch(password, hasUpperCharRegex) &&
+                Regex.IsMatch(password, hasLowerChar);
 
             return isValid;
         }
