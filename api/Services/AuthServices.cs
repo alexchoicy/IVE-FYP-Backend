@@ -34,7 +34,7 @@ namespace api.Services
         {
 
 
-            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.userName);
+            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.username);
 
             if (user == null)
             {
@@ -101,7 +101,7 @@ namespace api.Services
 
         public AuthResponeDto? register(RegisterRequestDto registerRequestDto)
         {
-            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == registerRequestDto.userName);
+            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == registerRequestDto.username);
 
             if (user != null)
             {
@@ -112,7 +112,7 @@ namespace api.Services
             String hashedPassword = hashServices.HashPassword(registerRequestDto.password, slat);
             Users newUser = new Users
             {
-                userName = registerRequestDto.userName,
+                userName = registerRequestDto.username,
                 password = hashedPassword,
                 slat = slat,
                 createdAt = DateTime.Now,
