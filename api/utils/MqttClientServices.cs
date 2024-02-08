@@ -14,10 +14,8 @@ namespace api.utils
         private readonly MqttClientOptions mqttconfig;
 
         private readonly string ClientId;
-        private readonly IConfiguration configuration;
 
         public MqttClientservices(IConfiguration configuration){
-            this.configuration = configuration;
             ClientId = configuration.GetValue<string>("MqttClientOptions:ClientId") ?? Guid.NewGuid().ToString();
 
             mqttconfig = new MqttClientOptionsBuilder()

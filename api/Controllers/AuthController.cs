@@ -13,12 +13,10 @@ namespace api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthServices authServices;
-        private readonly IUserServices userServices;
 
-        public AuthController(IAuthServices authServices, IUserServices userServices)
+        public AuthController(IAuthServices authServices)
         {
             this.authServices = authServices;
-            this.userServices = userServices;
         }
 
         [HttpPost("login")]

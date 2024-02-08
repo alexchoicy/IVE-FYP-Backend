@@ -28,14 +28,12 @@ namespace api.Services
         private readonly JWTServices jwtServices;
         private readonly HashServices hashServices;
         private readonly IConfiguration config;
-        private readonly IHttpContextAccessor httpContextAccessor;
-        public AuthServices(NormalDataBaseContext normalDataBaseContext, JWTServices jwtServices, HashServices hashServices, IConfiguration config, IHttpContextAccessor httpContextAccessor)
+        public AuthServices(NormalDataBaseContext normalDataBaseContext, JWTServices jwtServices, HashServices hashServices, IConfiguration config)
         {
             this.normalDataBaseContext = normalDataBaseContext;
             this.jwtServices = jwtServices;
             this.hashServices = hashServices;
             this.config = config;
-            this.httpContextAccessor = httpContextAccessor;
         }
 
         public AuthResponeDto? login(LoginRequestDto loginRequestDto)

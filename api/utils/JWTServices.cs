@@ -13,13 +13,11 @@ namespace api.utils
 {
     public class JWTServices
     {
-        private readonly IConfiguration config;
         private readonly SymmetricSecurityKey key;
         private readonly string issuer;
         private readonly string audience;
         public JWTServices(IConfiguration config)
         {
-            this.config = config;
             string config_key = config["Jwt:Key"] ?? "";
             string config_issuer = config["Jwt:Issuer"] ?? "";
             string config_audience = config["Jwt:Audience"] ?? "";

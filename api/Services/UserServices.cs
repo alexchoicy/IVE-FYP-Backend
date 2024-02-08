@@ -11,7 +11,7 @@ namespace api.Services
 {
     public interface IUserServices
     {
-        UserResponeDto? userInfo(string userName);
+        UserResponeDto? userInfo(string userID);
         bool IsUserExists(string userName);
         bool isUserActive(string userName);
         bool IsUserLockedOut(string userName);
