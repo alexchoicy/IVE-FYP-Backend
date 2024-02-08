@@ -52,7 +52,7 @@ namespace api.Controllers
             return Ok(response);
         }
 
-        [HttpPut]
+        [HttpPatch]
         [Authorize]
         public IActionResult UpdateUserInfo([FromBody] UserUpdateRequestDto userUpdateRequestDto)
         {
