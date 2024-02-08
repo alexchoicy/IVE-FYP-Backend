@@ -87,13 +87,13 @@ namespace api.utils
     }
     public static class JWTServicesExtension
     {
+        static JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
         public static string? getUserID(this ClaimsPrincipal user)
         {
             return user.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
         }
         public static string? getUserIDByToken(string token)
         {
-            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             JwtSecurityToken securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new Exception("Invalid Token");
             return securityToken?.Claims.FirstOrDefault(x => x.Type == "nameid")?.Value;
         }
@@ -105,10 +105,15 @@ namespace api.utils
 
         public static string? getTypeByToken(string token)
         {
-            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             JwtSecurityToken securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new Exception("Invalid Token");
             return securityToken?.Claims.FirstOrDefault(x => x.Type == "type")?.Value;
         } 
+
+        public static string? getExpireTimeByToken(string token)
+        {
+            JwtSecurityToken securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new Exception("Invalid Token");
+            return securityToken?.Claims.FirstOrDefault(x => x.Type == "exp")?.Value;
+        }
 
         public static string getAllCliams(this ClaimsPrincipal user)
         {
@@ -121,7 +126,6 @@ namespace api.utils
         }
         public static string getAllCliamsByToken(string token)
         {
-            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             JwtSecurityToken securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new Exception("Invalid Token");
             string result = "";
             foreach (Claim claim in securityToken.Claims)
