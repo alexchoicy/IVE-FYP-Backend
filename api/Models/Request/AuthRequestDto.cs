@@ -7,12 +7,12 @@ namespace api.Models.Request
 {
     public class LoginRequestDto
     {
-        public required string userName { get; set; }
+        public required string username { get; set; }
         public required string password { get; set; }
     }
     public class RegisterRequestDto
     {
-        public required string userName { get; set; }
+        public required string username { get; set; }
         public required string password { get; set; }
     }
 }
