@@ -52,7 +52,7 @@ namespace api.Services
                 throw new UserLockedException($"Your account is locked. Please try again in {Math.Round(remainingTime.TotalMinutes)} minutes.");
             }
 
-            String hashedPassword = hashServices.HashPassword(loginRequestDto.password, user.slat);
+            String hashedPassword = hashServices.HashPassword(loginRequestDto.password, user.salt);
 
             if (user.password != hashedPassword)
             {
@@ -108,13 +108,13 @@ namespace api.Services
                 throw new UserAlreadyExistException("The User already exist");
             }
 
-            String slat = hashServices.slatGenerator();
-            String hashedPassword = hashServices.HashPassword(registerRequestDto.password, slat);
+            String salt = hashServices.saltGenerator();
+            String hashedPassword = hashServices.HashPassword(registerRequestDto.password, salt);
             Users newUser = new Users
             {
                 userName = registerRequestDto.username,
                 password = hashedPassword,
-                slat = slat,
+                salt = salt,
                 createdAt = DateTime.Now,
                 isActive = true,
                 isLocked = false,

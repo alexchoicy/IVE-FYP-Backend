@@ -26,7 +26,7 @@ namespace api.utils
             return Convert.ToBase64String(hash);
         }
 
-        public string slatGenerator()
+        public string saltGenerator()
         {
             byte[] salt = RandomNumberGenerator.GetBytes(32);
             return Convert.ToBase64String(salt);

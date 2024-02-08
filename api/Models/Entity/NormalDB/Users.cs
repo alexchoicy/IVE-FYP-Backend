@@ -12,7 +12,7 @@ namespace api.Models.Entity.NormalDB
         public int userID { get; set; }
         public required string userName { get; set; }
         public required string password { get; set; }
-        public required string slat { get; set; }
+        public required string salt { get; set; }
         public string? phoneNumber { get; set; }
         public string? firstName { get; set; }
         public string? lastName { get; set; }
