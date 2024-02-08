@@ -37,6 +37,7 @@ namespace api.utils
             List<Claim> claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.NameId, users.userID.ToString()),
+                new Claim("type", "access-token")
             };
 
             SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
@@ -57,7 +58,32 @@ namespace api.utils
             return tokenHandler.WriteToken(token);
         }
 
+        public string CreateTokenForReset(Users user, int expireHours = 20)
+        {
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.NameId, user.userID.ToString()),
+                new Claim("type", "password-reset")
+            };
 
+            SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddHours(expireHours),
+                SigningCredentials = credentials,
+                Issuer = issuer,
+                Audience = audience
+            };
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+
+            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
+        
+        }
     }
     public static class JWTServicesExtension
     {
@@ -65,7 +91,11 @@ namespace api.utils
         {
             return user.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
         }
-        
+        public static string? getType(this ClaimsPrincipal user)
+        {
+            return user.Claims.FirstOrDefault(x => x.Type == "type")?.Value;
+        }
+         
         public static string getAllCliams(this ClaimsPrincipal user)
         {
             string result = "";

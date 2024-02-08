@@ -15,4 +15,15 @@ namespace api.Models.Request
         public required string username { get; set; }
         public required string password { get; set; }
     }
+    public class ResetPasswordRequestDto
+    {
+        public required string username { get; set; }
+    }
+
+    public class ResetPasswordVeifyRequestDto
+    {
+        public required string username { get; set; }
+        public required string token { get; set; }
+        public required string newPassword { get; set; }
+    }
 }

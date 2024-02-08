@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using api.Models;
 using api.Models.Entity.NormalDB;
@@ -16,6 +17,8 @@ namespace api.Services
     {
         AuthResponeDto? login(LoginRequestDto loginRequestDto);
         AuthResponeDto? register(RegisterRequestDto registerRequestDto);
+        bool resetPassword(ResetPasswordRequestDto resetPasswordRequestDto);
+        bool resetPasswordVeify(ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto);
     }
 
     public class AuthServices : IAuthServices
@@ -23,11 +26,15 @@ namespace api.Services
         private readonly NormalDataBaseContext normalDataBaseContext;
         private readonly JWTServices jwtServices;
         private readonly HashServices hashServices;
-        public AuthServices(NormalDataBaseContext normalDataBaseContext, JWTServices jwtServices, HashServices hashServices)
+        private readonly IConfiguration config;
+        private readonly IHttpContextAccessor httpContextAccessor;
+        public AuthServices(NormalDataBaseContext normalDataBaseContext, JWTServices jwtServices, HashServices hashServices, IConfiguration config, IHttpContextAccessor httpContextAccessor)
         {
             this.normalDataBaseContext = normalDataBaseContext;
             this.jwtServices = jwtServices;
             this.hashServices = hashServices;
+            this.config = config;
+            this.httpContextAccessor = httpContextAccessor;
         }
         
         public AuthResponeDto? login(LoginRequestDto loginRequestDto)
@@ -135,6 +142,66 @@ namespace api.Services
             };
 
             return response;
+        }
+        public bool resetPassword(ResetPasswordRequestDto resetPasswordRequestDto)
+        {
+            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == resetPasswordRequestDto.username);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException("The User does not exist");
+            }
+
+            String token = jwtServices.CreateTokenForReset(user);
+
+            string url = config.GetValue<string>("ResetPasswordUrl");
+            
+            var data = new
+            {
+                content = token
+            };
+
+            var result = httpRequest.MakePostRequest(url, data).Result;
+            if (result == "Success")
+            {
+                return true;
+            } else
+            {
+                return false;
+            }
+        }
+        public bool resetPasswordVeify(ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto)
+        {
+            string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+            if (userid == "")
+            {
+                throw new InvalidCredentialsException("The token is invalid");
+            }
+            string type = httpContextAccessor.HttpContext.User.FindFirst("type")?.Value ?? "";
+            if (type != "password-reset")
+            {
+                throw new InvalidCredentialsException("The token is invalid");
+            }
+            if (userid != resetPasswordVeifyRequestDto.username)
+            {
+                throw new InvalidCredentialsException("The token is invalid");
+            }
+
+            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == resetPasswordVeifyRequestDto.username);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException("The User does not exist");
+            }
+
+            string salt = hashServices.saltGenerator();
+            string hashedPassword = hashServices.HashPassword(resetPasswordVeifyRequestDto.newPassword, salt);
+
+            user.salt = salt;
+            user.password = hashedPassword;
+            normalDataBaseContext.SaveChanges();
+
+            return true;
         }
     }
 }
