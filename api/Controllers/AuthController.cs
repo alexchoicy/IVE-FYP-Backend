@@ -62,5 +62,27 @@ namespace api.Controllers
                 return Unauthorized(response);
             }
         }
+        public ActionResult<ApiResponse<AuthResponeDto>> Register([FromBody] RegisterRequestDto registerRequestDto)
+        {
+            ApiResponse<AuthResponeDto> response = new ApiResponse<AuthResponeDto>();
+            if (registerRequestDto == null)
+            {
+                response.ErrorMessage = "Request is null";
+                response.Success = false;
+                return BadRequest(response);
+            }
+            try
+            {
+                AuthResponeDto? data = authServices.register(registerRequestDto);
+                response.Data = data;
+                return Ok(response);
+            }
+            catch (UserAlreadyExistException ex)
+            {
+                response.ErrorMessage = ex.Message;
+                response.Success = false;
+                return BadRequest(response);
+            }
+        }
     }
 }

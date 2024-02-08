@@ -15,19 +15,21 @@ namespace api.Services
     public interface IAuthServices
     {
         AuthResponeDto? login(LoginRequestDto loginRequestDto);
+        AuthResponeDto? register(RegisterRequestDto registerRequestDto);
     }
 
     public class AuthServices : IAuthServices
     {
         private readonly NormalDataBaseContext normalDataBaseContext;
-
         private readonly JWTServices jwtServices;
-        public AuthServices(NormalDataBaseContext normalDataBaseContext, JWTServices jwtServices)
+        private readonly HashServices hashServices;
+        public AuthServices(NormalDataBaseContext normalDataBaseContext, JWTServices jwtServices, HashServices hashServices)
         {
             this.normalDataBaseContext = normalDataBaseContext;
             this.jwtServices = jwtServices;
+            this.hashServices = hashServices;
         }
-
+        
         public AuthResponeDto? login(LoginRequestDto loginRequestDto)
         {
 
@@ -50,7 +52,9 @@ namespace api.Services
                 throw new UserLockedException($"Your account is locked. Please try again in {Math.Round(remainingTime.TotalMinutes)} minutes.");
             }
 
-            if (user.password != loginRequestDto.password)
+            String hashedPassword = hashServices.HashPassword(loginRequestDto.password, user.slat);
+
+            if (user.password != hashedPassword)
             {
                 user.loginAttempts++;
                 if (user.loginAttempts >= 3)
@@ -59,7 +63,7 @@ namespace api.Services
                     user.lockUntil = DateTime.Now.AddMinutes(5);
                 }
                 normalDataBaseContext.SaveChanges();
-                throw new InvalidCredentialsException("The username or password is incorrect");
+                throw new InvalidCredentialsException("The password is incorrect");
             }
 
             if (user.isLocked)
@@ -86,14 +90,51 @@ namespace api.Services
             {
                 Token = jwtServices.CreateToken(user),
                 userName = user.userName,
-                email = user.email ?? "you have not set email yet",
-                firstName = user.firstName ?? "you have not set first name yet",
-                lastName = user.lastName ?? "you have not set last name yet",
-                phoneNumber = user.phoneNumber ?? "you have not set phone number yet",
+                email = user.email ?? "",
+                firstName = user.firstName ?? "",
+                lastName = user.lastName ?? "",
+                phoneNumber = user.phoneNumber ?? "",
             };
 
             return response;
         }
 
+        public AuthResponeDto? register(RegisterRequestDto registerRequestDto)
+        {
+            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == registerRequestDto.userName);
+
+            if (user != null)
+            {
+                throw new UserAlreadyExistException("The User already exist");
+            }
+
+            String slat = hashServices.slatGenerator();
+            String hashedPassword = hashServices.HashPassword(registerRequestDto.password, slat);
+            Users newUser = new Users
+            {
+                userName = registerRequestDto.userName,
+                password = hashedPassword,
+                slat = slat,
+                createdAt = DateTime.Now,
+                isActive = true,
+                isLocked = false,
+                loginAttempts = 0,
+            };
+
+            normalDataBaseContext.users.Add(newUser);
+            normalDataBaseContext.SaveChanges();
+
+            AuthResponeDto response = new AuthResponeDto
+            {
+                Token = jwtServices.CreateToken(newUser),
+                userName = newUser.userName,
+                email = newUser.email ?? "",
+                firstName = newUser.firstName ?? "",
+                lastName = newUser.lastName ?? "",
+                phoneNumber = newUser.phoneNumber ?? "",
+            };
+
+            return response;
+        }
     }
 }

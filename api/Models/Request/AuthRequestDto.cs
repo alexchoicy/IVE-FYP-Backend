@@ -9,5 +9,10 @@ namespace api.Models.Request
     {
         public required string userName { get; set; }
         public required string password { get; set; }
-    }    
+    }
+    public class RegisterRequestDto
+    {
+        public required string userName { get; set; }
+        public required string password { get; set; }
+    }
 }

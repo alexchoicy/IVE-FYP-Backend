@@ -62,7 +62,7 @@ builder.Services.AddDbContext<NormalDataBaseContext>(options =>
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<JWTServices>();
-
+builder.Services.AddScoped<HashServices>();
 // builder.Services.AddScoped<ITest, Test>();
 builder.Services.AddScoped<IAuthServices, AuthServices>();
 builder.Services.AddScoped<IUserServices, UserServices>();
