@@ -182,16 +182,16 @@ namespace api.Services
             {
                 throw new InvalidCredentialsException("The token is invalid");
             }
-            if (userid != resetPasswordVeifyRequestDto.username)
-            {
-                throw new InvalidCredentialsException("The token is invalid");
-            }
 
             Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == resetPasswordVeifyRequestDto.username);
 
             if (user == null)
             {
                 throw new UserNotFoundException("The User does not exist");
+            }
+            if (userid != user.userID.ToString())
+            {
+                throw new InvalidCredentialsException("The token is invalid");
             }
 
             string salt = hashServices.saltGenerator();
