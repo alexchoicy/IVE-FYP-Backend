@@ -17,11 +17,11 @@ namespace api.utils
             pepper = configuration.GetValue<string>("Password:Pepper") ?? throw new ArgumentNullException("Pepper is not defined");
         }
 
-        public string HashPassword(string password, string slat)
+        public string HashPassword(string password, string salt)
         {
             SHA256 sha256 = SHA256.Create();
-            string passwordSlatPepper = password + slat + pepper;
-            byte[] bytes = Encoding.UTF8.GetBytes(passwordSlatPepper);
+            string passwordSaltPepper = password + salt + pepper;
+            byte[] bytes = Encoding.UTF8.GetBytes(passwordSaltPepper);
             byte[] hash = sha256.ComputeHash(bytes);
             return Convert.ToBase64String(hash);
         }

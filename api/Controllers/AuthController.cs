@@ -85,5 +85,53 @@ namespace api.Controllers
                 return BadRequest(response);
             }
         }
+
+        [HttpPost("reset_password")]
+        public ActionResult<ApiResponse<string>> ResetPassword([FromBody] ResetPasswordRequestDto resetPasswordRequestDto)
+        {
+            ApiResponse<string> response = new ApiResponse<string>();
+            if (resetPasswordRequestDto == null)
+            {
+                response.ErrorMessage = "Request is null";
+                response.Success = false;
+                return BadRequest(response);
+            }
+            try
+            {
+                authServices.resetPassword(resetPasswordRequestDto);
+                response.Data = "Reset password link has been sent to the email. Please check your email to reset your password.";
+                return Ok(response);
+            }
+            catch (UserNotFoundException ex)
+            {
+                response.ErrorMessage = ex.Message;
+                response.Success = false;
+                return NotFound(response);
+            }
+        }
+
+        [HttpPost("reset_password/veify")]
+        public ActionResult<ApiResponse<string>> VerifyResetPassword([FromBody] ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto)
+        {
+            ApiResponse<string> response = new ApiResponse<string>();
+            if (resetPasswordVeifyRequestDto == null)
+            {
+                response.ErrorMessage = "Request is null";
+                response.Success = false;
+                return BadRequest(response);
+            }
+            try
+            {
+                authServices.resetPasswordVeify(resetPasswordVeifyRequestDto);
+                response.Data = "Success";
+                return Ok(response);
+            }
+            catch (InvalidCredentialsException ex)
+            {
+                response.ErrorMessage = ex.Message;
+                response.Success = false;
+                return Unauthorized(response);
+            }
+        }
     }
 }
