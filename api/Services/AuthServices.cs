@@ -188,13 +188,13 @@ namespace api.Services
                 throw new InvalidCredentialsException("The token Type incorrect");
             }
             string time = JWTServicesExtension.getExpireTimeByToken(resetPasswordVeifyRequestDto.token) ?? "";
-
+            Console.WriteLine(time);
             if (time == "")
             {
                 throw new InvalidCredentialsException("The token is invalid");
             }
 
-            if (DateTime.Parse(time) < DateTime.Now)
+            if (DateTimeOffset.FromUnixTimeSeconds(long.Parse(time)) < DateTimeOffset.Now)
             {
                 throw new InvalidCredentialsException("The token is expired");
             }
