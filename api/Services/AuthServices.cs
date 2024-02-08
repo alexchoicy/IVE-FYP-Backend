@@ -177,21 +177,19 @@ namespace api.Services
             {
                 throw new InvalidCredentialsException("The token is invalid");
             }
+
             string type = httpContextAccessor.HttpContext.User.FindFirst("type")?.Value ?? "";
+
             if (type != "password-reset")
             {
-                throw new InvalidCredentialsException("The token is invalid");
+                throw new InvalidCredentialsException("The token Type incorrect");
             }
 
-            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == resetPasswordVeifyRequestDto.username);
+            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userID == int.Parse(userid));
 
             if (user == null)
             {
                 throw new UserNotFoundException("The User does not exist");
-            }
-            if (userid != user.userID.ToString())
-            {
-                throw new InvalidCredentialsException("The token is invalid");
             }
 
             string salt = hashServices.saltGenerator();
