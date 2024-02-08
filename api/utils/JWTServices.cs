@@ -91,11 +91,25 @@ namespace api.utils
         {
             return user.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
         }
+        public static string? getUserIDByToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            return securityToken?.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+        }
+        
         public static string? getType(this ClaimsPrincipal user)
         {
             return user.Claims.FirstOrDefault(x => x.Type == "type")?.Value;
         }
-         
+
+        public static string? getTypeByToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            return securityToken?.Claims.FirstOrDefault(x => x.Type == "type")?.Value;
+        } 
+
         public static string getAllCliams(this ClaimsPrincipal user)
         {
             string result = "";

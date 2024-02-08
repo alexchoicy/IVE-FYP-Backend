@@ -172,13 +172,13 @@ namespace api.Services
         }
         public bool resetPasswordVeify(ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto)
         {
-            string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+            string userid = JWTServicesExtension.getUserIDByToken(resetPasswordVeifyRequestDto.token);
             if (userid == "")
             {
                 throw new InvalidCredentialsException("The token is invalid");
             }
 
-            string type = httpContextAccessor.HttpContext.User.FindFirst("type")?.Value ?? "";
+            string type = JWTServicesExtension.getTypeByToken(resetPasswordVeifyRequestDto.token);
 
             if (type != "password-reset")
             {
