@@ -62,6 +62,7 @@ namespace api.Controllers
                 return Unauthorized(response);
             }
         }
+        [HttpPost("register")]
         public ActionResult<ApiResponse<AuthResponeDto>> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
             ApiResponse<AuthResponeDto> response = new ApiResponse<AuthResponeDto>();
