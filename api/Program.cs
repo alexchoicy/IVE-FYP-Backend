@@ -66,6 +66,8 @@ builder.Services.AddScoped<HashServices>();
 
 builder.Services.AddScoped<IAuthServices, AuthServices>();
 builder.Services.AddScoped<IUserServices, UserServices>();
+builder.Services.AddScoped<IParkingLotService, ParkingLotService>();
+builder.Services.AddScoped<IParkingSlotService, ParkingSlotService>();
 
 
 builder.Services.AddAuthentication(options =>
