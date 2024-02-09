@@ -5,11 +5,6 @@ using System.Threading.Tasks;
 
 namespace api.Models.Request
 {
-    public class UserRequestDto
-    {
-        
-    }
-
     public class UserUpdateRequestDto
     {
         public string? email { get; set; }

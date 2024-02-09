@@ -38,7 +38,7 @@ namespace api.utils
                 new Claim("type", "access-token")
             };
 
-            SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            SigningCredentials credentials = new(key, SecurityAlgorithms.HmacSha512Signature);
 
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {

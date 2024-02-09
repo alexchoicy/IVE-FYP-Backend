@@ -232,13 +232,13 @@ namespace api.Services
 
             var hasNumberRegex = @"[0-8]+";
             var hasUpperCharRegex = @"[A-Z]+";
-            var hasLowerChar = @"[a-z]+";
+            var hasLowerCharRegex = @"[a-z]+";
 
             bool isValid =
                 password.Length >= minLegth &&
                 Regex.IsMatch(password, hasNumberRegex) &&
                 Regex.IsMatch(password, hasUpperCharRegex) &&
-                Regex.IsMatch(password, hasLowerChar);
+                Regex.IsMatch(password, hasLowerCharRegex);
 
             return isValid;
         }

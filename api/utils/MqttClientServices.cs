@@ -25,7 +25,7 @@ namespace api.utils
 
             mqttClient = new MqttFactory().CreateMqttClient();
 
-            mqttClient.ApplicationMessageReceivedAsync += messageReceivedhandler;
+            mqttClient.ApplicationMessageReceivedAsync += ReceiveMessageHander;
         }
 
         public async Task StartAync()
@@ -63,7 +63,7 @@ namespace api.utils
             await mqttClient.DisconnectAsync();
         }
 
-        public Task messageReceivedhandler(MqttApplicationMessageReceivedEventArgs e)
+        public Task ReceiveMessageHander(MqttApplicationMessageReceivedEventArgs e)
         {
             // The client will listen to the message that send by itself
                 Console.WriteLine("Received application message.");
