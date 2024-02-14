@@ -137,5 +137,47 @@ namespace api.Controllers
                 return Unauthorized(response);
             }
         }
+
+        [HttpPost("admin/login")]
+        public ActionResult<ApiResponse<AuthResponeDto>> AdminLogin([FromBody] LoginRequestDto loginRequestDto)
+        {
+            ApiResponse<AuthResponeDto> response = new ApiResponse<AuthResponeDto>();
+            if (loginRequestDto == null)
+            {
+                response.ErrorMessage = "Request is null";
+                response.Success = false;
+                return BadRequest(response);
+            }
+            try
+            {
+                AuthResponeDto? data = authServices.AdminLogin(loginRequestDto);
+                response.Data = data;
+                return Ok(response);
+            }
+            catch (UserNotFoundException ex)
+            {
+                response.ErrorMessage = ex.Message;
+                response.Success = false;
+                return NotFound(response);
+            }
+            catch (UserNotActiveException ex)
+            {
+                response.ErrorMessage = ex.Message;
+                response.Success = false;
+                return Unauthorized(response);
+            }
+            catch (UserLockedException ex)
+            {
+                response.ErrorMessage = ex.Message;
+                response.Success = false;
+                return Unauthorized(response);
+            }
+            catch (InvalidCredentialsException ex)
+            {
+                response.ErrorMessage = ex.Message;
+                response.Success = false;
+                return Unauthorized(response);
+            }
+        }
     }
 }
