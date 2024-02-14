@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using api.Exceptions;
 using api.Models;
 using api.Models.Entity.NormalDB;
+using api.Models.Entity.StaffDB;
 using api.Models.Request;
 using api.Models.Respone;
 using api.utils;
@@ -20,17 +21,20 @@ namespace api.Services
         AuthResponeDto? register(RegisterRequestDto registerRequestDto);
         bool resetPassword(ResetPasswordRequestDto resetPasswordRequestDto);
         bool resetPasswordVeify(ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto);
+        AuthResponeDto? AdminLogin(LoginRequestDto loginRequestDto);
     }
 
     public class AuthServices : IAuthServices
     {
         private readonly NormalDataBaseContext normalDataBaseContext;
+        private readonly StaffDataBaseContext staffDataBaseContext;
         private readonly JWTServices jwtServices;
         private readonly HashServices hashServices;
         private readonly IConfiguration config;
-        public AuthServices(NormalDataBaseContext normalDataBaseContext, JWTServices jwtServices, HashServices hashServices, IConfiguration config)
+        public AuthServices(NormalDataBaseContext normalDataBaseContext, StaffDataBaseContext staffDataBaseContext, JWTServices jwtServices, HashServices hashServices, IConfiguration config)
         {
             this.normalDataBaseContext = normalDataBaseContext;
+            this.staffDataBaseContext = staffDataBaseContext;
             this.jwtServices = jwtServices;
             this.hashServices = hashServices;
             this.config = config;
@@ -216,7 +220,7 @@ namespace api.Services
             {
                 throw new UserNotFoundException("The User does not exist");
             }
-            
+
             string salt = hashServices.saltGenerator();
             string hashedPassword = hashServices.HashPassword(resetPasswordVeifyRequestDto.newPassword, salt);
 
@@ -241,6 +245,33 @@ namespace api.Services
                 Regex.IsMatch(password, hasLowerCharRegex);
 
             return isValid;
+        }
+
+
+        public AuthResponeDto AdminLogin(LoginRequestDto loginRequestDto)
+        {
+            StaffUsers? user = staffDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.username);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException("The User does not exist");
+            }
+
+            if (user.Password != loginRequestDto.password)
+            {
+                throw new InvalidCredentialsException("The password is incorrect");
+            }
+
+            AuthResponeDto response = new AuthResponeDto
+            {
+                Token = jwtServices.CreateAdminToken(user),
+                userName = user.userName,
+                email = user.Email ?? "",
+                firstName = user.FirstName ?? "",
+                lastName = user.LastName ?? "",
+                phoneNumber = user.PhoneNumber ?? "",
+            };
+            return response;
         }
     }
 }

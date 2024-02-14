@@ -9,8 +9,8 @@ namespace api.Models
 {
     public class NormalDataBaseContext : DbContext
     {
-        public NormalDataBaseContext(DbContextOptions dbContextOptions) : base(dbContextOptions){}
+        public NormalDataBaseContext(DbContextOptions<NormalDataBaseContext> dbContextOptions) : base(dbContextOptions) { }
 
-        public DbSet<Users> users { get; set; } 
+        public DbSet<Users> users { get; set; }
     }
 }

@@ -13,7 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddApiVersioning();
 
-builder.Services.Configure<ApiBehaviorOptions>(options =>{
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
     options.SuppressModelStateInvalidFilter = true;
 });
 
@@ -57,6 +58,15 @@ builder.Services.AddDbContext<NormalDataBaseContext>(options =>
 {
     string? NormalDataBaseConnectionString = builder.Configuration.GetConnectionString("NormalDataBaseConnection");
     options.UseMySql(NormalDataBaseConnectionString, ServerVersion.AutoDetect(NormalDataBaseConnectionString));
+
+    string? StaffDataBaseConnectionString = builder.Configuration.GetConnectionString("StaffDataBaseConnection");
+    options.UseMySql(StaffDataBaseConnectionString, ServerVersion.AutoDetect(StaffDataBaseConnectionString));
+});
+
+builder.Services.AddDbContext<StaffDataBaseContext>(options =>
+{
+    string? StaffDataBaseConnectionString = builder.Configuration.GetConnectionString("StaffDataBaseConnection");
+    options.UseMySql(StaffDataBaseConnectionString, ServerVersion.AutoDetect(StaffDataBaseConnectionString));
 });
 
 builder.Services.AddHttpContextAccessor();

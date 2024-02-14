@@ -7,6 +7,7 @@ using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using api.Models.Entity.NormalDB;
+using api.Models.Entity.StaffDB;
 using Microsoft.IdentityModel.Tokens;
 
 namespace api.utils
@@ -80,7 +81,32 @@ namespace api.utils
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
-        
+
+        }
+        public string CreateAdminToken(StaffUsers staffUsers)
+        {
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.NameId, staffUsers.UserID.ToString()),
+                new Claim("type", "admin")
+            };
+
+            SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddDays(30),
+                SigningCredentials = credentials,
+                Issuer = issuer,
+                Audience = audience
+            };
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+
+            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
         }
     }
     public static class JWTServicesExtension
@@ -95,7 +121,7 @@ namespace api.utils
             JwtSecurityToken securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new Exception("Invalid Token");
             return securityToken?.Claims.FirstOrDefault(x => x.Type == "nameid")?.Value;
         }
-        
+
         public static string? getType(this ClaimsPrincipal user)
         {
             return user.Claims.FirstOrDefault(x => x.Type == "type")?.Value;
@@ -105,7 +131,7 @@ namespace api.utils
         {
             JwtSecurityToken securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken ?? throw new Exception("Invalid Token");
             return securityToken?.Claims.FirstOrDefault(x => x.Type == "type")?.Value;
-        } 
+        }
 
         public static string? getExpireTimeByToken(string token)
         {

@@ -9,8 +9,8 @@ namespace api.Models
 {
     public class StaffDataBaseContext : DbContext
     {
-        public StaffDataBaseContext(DbContextOptions dbContextOptions) : base(dbContextOptions){}
-        public DbSet<Users> users { get; set; } 
+        public StaffDataBaseContext(DbContextOptions<StaffDataBaseContext> dbContextOptions) : base(dbContextOptions) { }
+        public DbSet<StaffUsers> users { get; set; }
 
     }
 }
