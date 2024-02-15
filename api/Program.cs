@@ -59,8 +59,6 @@ builder.Services.AddDbContext<NormalDataBaseContext>(options =>
     string? NormalDataBaseConnectionString = builder.Configuration.GetConnectionString("NormalDataBaseConnection");
     options.UseMySql(NormalDataBaseConnectionString, ServerVersion.AutoDetect(NormalDataBaseConnectionString));
 
-    string? StaffDataBaseConnectionString = builder.Configuration.GetConnectionString("StaffDataBaseConnection");
-    options.UseMySql(StaffDataBaseConnectionString, ServerVersion.AutoDetect(StaffDataBaseConnectionString));
 });
 
 builder.Services.AddDbContext<StaffDataBaseContext>(options =>
