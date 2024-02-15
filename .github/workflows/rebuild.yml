@@ -14,5 +14,5 @@ jobs:
           clean: false
       - name: Rebuild
         run: |
-          docker-compose stop
-          docker-compose up -d --build --remove-orphans
+          docker compose stop
+          docker compose up -d --build --remove-orphans
