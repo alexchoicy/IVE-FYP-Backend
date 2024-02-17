@@ -4,6 +4,7 @@ using api.Services;
 using api.utils;
 using Microsoft.AspNetCore.Mvc;
 using api.Exceptions;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace api.Controllers
 {
@@ -27,6 +28,7 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "Request is null";
                 response.Success = false;
+                response.StatusCode = 400;
                 return BadRequest(response);
             }
             try
@@ -39,17 +41,20 @@ namespace api.Controllers
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 404;
                 return NotFound(response);
             }
             catch (UserNotActiveException ex)
             {
                 response.ErrorMessage = ex.Message;
+                response.StatusCode = 401;
                 response.Success = false;
                 return Unauthorized(response);
             }
             catch (UserLockedException ex)
             {
                 response.ErrorMessage = ex.Message;
+                response.StatusCode = 401;
                 response.Success = false;
                 return Unauthorized(response);
             }
@@ -57,6 +62,7 @@ namespace api.Controllers
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 401;
                 return Unauthorized(response);
             }
         }
@@ -68,24 +74,28 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "Request is null";
                 response.Success = false;
+                response.StatusCode = 400;
                 return BadRequest(response);
             }
             try
             {
                 AuthResponeDto? data = authServices.register(registerRequestDto);
                 response.Data = data;
-                return Ok(response);
+                response.StatusCode = 201;
+                return Created("", response);
             }
             catch (UserAlreadyExistException ex)
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
-                return BadRequest(response);
+                response.StatusCode = 409;
+                return Conflict(response);
             }
             catch (InvalidCredentialsException ex)
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 400;
                 return BadRequest(response);
             }
         }
@@ -98,18 +108,21 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "Request is null";
                 response.Success = false;
+                response.StatusCode = 400;
                 return BadRequest(response);
             }
             try
             {
                 authServices.resetPassword(resetPasswordRequestDto);
                 response.Data = "Reset password link has been sent to the email. Please check your email to reset your password.";
-                return Ok(response);
+                response.StatusCode = 202;
+                return Accepted(response);
             }
             catch (UserNotFoundException ex)
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 404;
                 return NotFound(response);
             }
         }
@@ -122,6 +135,7 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "Request is null";
                 response.Success = false;
+                response.StatusCode = 400;
                 return BadRequest(response);
             }
             try
@@ -134,6 +148,7 @@ namespace api.Controllers
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 401;
                 return Unauthorized(response);
             }
         }
@@ -146,6 +161,7 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "Request is null";
                 response.Success = false;
+                response.StatusCode = 400;
                 return BadRequest(response);
             }
             try
@@ -158,24 +174,28 @@ namespace api.Controllers
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 404;
                 return NotFound(response);
             }
             catch (UserNotActiveException ex)
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 401;
                 return Unauthorized(response);
             }
             catch (UserLockedException ex)
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 401;
                 return Unauthorized(response);
             }
             catch (InvalidCredentialsException ex)
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 401;
                 return Unauthorized(response);
             }
         }

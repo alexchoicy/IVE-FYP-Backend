@@ -32,6 +32,7 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "You are unauthorized";
                 response.Success = false;
+                response.StatusCode = 401;
                 return Unauthorized(response);
             }
             string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
@@ -39,6 +40,7 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "Some Error Occured, Please try again later.";
                 response.Success = false;
+                response.StatusCode = 400;
                 return BadRequest(response);
             }
             UserResponeDto? user = userServices.getuserInfo(userid);
@@ -46,6 +48,7 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "User not found";
                 response.Success = false;
+                response.StatusCode = 404;
                 return NotFound(response);
             }
             response.Data = user;
@@ -61,6 +64,7 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "You are unauthorized";
                 response.Success = false;
+                response.StatusCode = 401;
                 return Unauthorized(response);
             }
             string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
@@ -68,31 +72,36 @@ namespace api.Controllers
             {
                 response.ErrorMessage = "Some Error Occured, Please try again later.";
                 response.Success = false;
+                response.StatusCode = 400;
                 return BadRequest(response);
             }
             try
             {
-                
+
                 UserResponeDto user = userServices.updateUserInfo(userid, userUpdateRequestDto);
                 response.Data = user;
-                return Ok(response);
+                response.StatusCode = 202;
+                return Accepted(response);
             }
             catch (UserNotFoundException ex)
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 404;
                 return NotFound(response);
             }
             catch (InvalidEmailException ex)
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 400;
                 return BadRequest(response);
             }
             catch (InvalidPhoneNumberException ex)
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
+                response.StatusCode = 400;
                 return BadRequest(response);
             }
         }
