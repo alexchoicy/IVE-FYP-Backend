@@ -188,8 +188,8 @@ namespace api.Controllers
             {
                 response.ErrorMessage = ex.Message;
                 response.Success = false;
-                response.StatusCode = 401;
-                return Unauthorized(response);
+                response.StatusCode = 429;
+                return StatusCode(429, response);
             }
             catch (InvalidCredentialsException ex)
             {
