@@ -15,13 +15,13 @@ builder.Services.AddApiVersioning();
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(
-        builder =>
-        {
-            builder.AllowAnyOrigin()
+    options.AddPolicy(
+        "AllowAll",
+        builder => builder
+            .AllowAnyOrigin()
             .AllowAnyMethod()
-            .AllowAnyHeader();
-        });
+            .AllowAnyHeader()
+    );
 });
 
 
