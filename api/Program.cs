@@ -146,4 +146,6 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
+app.UseCors("AllowAll");
+
 app.Run();
