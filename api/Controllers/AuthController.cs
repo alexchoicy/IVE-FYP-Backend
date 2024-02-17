@@ -54,9 +54,9 @@ namespace api.Controllers
             catch (UserLockedException ex)
             {
                 response.ErrorMessage = ex.Message;
-                response.StatusCode = 401;
+                response.StatusCode = 429;
                 response.Success = false;
-                return Unauthorized(response);
+                return StatusCode(429, response);
             }
             catch (InvalidCredentialsException ex)
             {
