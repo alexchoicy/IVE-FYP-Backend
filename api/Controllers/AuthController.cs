@@ -42,7 +42,7 @@ namespace api.Controllers
             }
             catch (UserLockedException ex)
             {
-                return StatusCode(429, ex);
+                return StatusCode(StatusCodes.Status429TooManyRequests, ex);
             }
             catch (InvalidCredentialsException ex)
             {
@@ -84,7 +84,7 @@ namespace api.Controllers
             {
                 authServices.resetPassword(resetPasswordRequestDto);
                 //MR.ACCEPTED CAN"T SEND THE MESSAGE SIRRRRRRRRRRRRRRR
-                return StatusCode(402, "Reset password link has been sent to the email. Please check your email to reset your password.");
+                return StatusCode(StatusCodes.Status202Accepted, "Reset password link has been sent to the email. Please check your email to reset your password.");
             }
             catch (UserNotFoundException ex)
             {
@@ -135,7 +135,7 @@ namespace api.Controllers
             }
             catch (UserLockedException ex)
             {
-                return StatusCode(429, ex);
+                return StatusCode(StatusCodes.Status429TooManyRequests, ex);
             }
             catch (InvalidCredentialsException ex)
             {

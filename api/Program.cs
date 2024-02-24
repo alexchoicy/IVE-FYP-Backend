@@ -146,11 +146,16 @@ builder.Services.AddAuthentication(options =>
     {
         OnChallenge = async context =>
         {
+            string? ip = context.HttpContext.Connection.RemoteIpAddress?.ToString();
+            string endpoint = context.HttpContext.Request.Path;
+            string? method = context.HttpContext.Request.Method;
+            Log.Error($"Failed: Request from {ip} to {endpoint}, {method}, {context.ErrorDescription}");
+            Console.WriteLine($"Failed: Request from {ip} to {endpoint}, {method}, {context.ErrorDescription}");
             context.HandleResponse();
-            context.Response.StatusCode = 401;
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             await context.Response.WriteAsJsonAsync(new ApiResponse<string>
             {
-                ErrorMessage = context.ErrorDescription ?? "You are not Authorized",
+                ErrorMessage = "You are not Authorized",
                 Success = false
             });
         }

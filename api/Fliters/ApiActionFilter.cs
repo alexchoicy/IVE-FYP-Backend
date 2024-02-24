@@ -19,9 +19,10 @@ namespace api.Fliters
 
             if (context.Result is ObjectResult objectResult)
             {
+                int? statusCode = objectResult.StatusCode;
                 ApiResponse<object> response = new ApiResponse<object>
                 {
-                    StatusCode = objectResult.StatusCode ?? StatusCodes.Status200OK,
+                    StatusCode = statusCode ?? StatusCodes.Status200OK,
                 };
                 if (objectResult.Value is BaseCustomExceptions customExceptions)
                 {
@@ -34,6 +35,12 @@ namespace api.Fliters
                     response.Success = false;
                     response.ErrorMessage = "Internal Server Error";
                     Log.Error($"Failed: Request from {ip} to {endpoint}, {method}, {action}, {exception.GetType().Name}");
+                }
+                else if (statusCode == StatusCodes.Status400BadRequest)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = objectResult.Value?.ToString();
+                    Log.Error($"Failed: Request from {ip} to {endpoint}, {method}, {action}");
                 }
                 else
                 {
