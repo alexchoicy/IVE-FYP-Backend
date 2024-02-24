@@ -1,5 +1,6 @@
 using api.Controllers;
 using api.Fliters;
+using api.Middleware;
 using api.Models;
 using api.Services;
 using api.utils;
@@ -156,8 +157,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -166,6 +165,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 // }
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 
 app.UseHttpsRedirection();
