@@ -48,10 +48,7 @@ namespace api.Controllers
             {
                 return Unauthorized(ex);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
+
         }
         [HttpPost("register")]
         public ActionResult<ApiResponse<AuthResponeDto>> Register([FromBody] RegisterRequestDto registerRequestDto)
@@ -73,10 +70,7 @@ namespace api.Controllers
             {
                 return BadRequest(ex);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
+
         }
 
         [HttpPost("reset_password")]
@@ -96,10 +90,7 @@ namespace api.Controllers
             {
                 return NotFound(ex);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
+
         }
 
         [HttpPost("reset_password/veify")]
@@ -118,10 +109,7 @@ namespace api.Controllers
             {
                 return Unauthorized(ex);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
+
         }
 
         [HttpPost("admin/login")]
@@ -153,10 +141,7 @@ namespace api.Controllers
             {
                 return Unauthorized(ex);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
+
         }
     }
 }

@@ -45,10 +45,7 @@ namespace api.Controllers
             {
                 return NotFound(ex);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
+
         }
 
 
@@ -86,10 +83,7 @@ namespace api.Controllers
             {
                 return BadRequest(ex);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
+
         }
 
         [HttpGet("users/{userid}")]
@@ -114,10 +108,7 @@ namespace api.Controllers
             {
                 return NotFound(ex);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
+
 
         }
 
