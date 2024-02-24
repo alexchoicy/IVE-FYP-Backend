@@ -1,4 +1,5 @@
 using api.Controllers;
+using api.Fliters;
 using api.Models;
 using api.Services;
 using api.utils;
@@ -7,8 +8,26 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Events;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
+    .MinimumLevel.Override("System", LogEventLevel.Error)
+    .WriteTo.Console()
+    .WriteTo.File($"Logs/{DateTime.Now:yyyyMMdd}/log-{DateTime.Now:HHmmss}.txt")
+    .CreateLogger();
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+// maybe needed lol
+builder.Host.UseSerilog();
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.AddSerilog();
+
 
 builder.Services.AddControllers();
 builder.Services.AddApiVersioning();
@@ -22,6 +41,13 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()
             .AllowAnyHeader()
     );
+});
+
+builder.Services.AddScoped<ApiActionFilter>();
+
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(typeof(ApiActionFilter));
 });
 
 
@@ -86,7 +112,7 @@ builder.Services.AddScoped<HashServices>();
 
 builder.Services.AddScoped<IAuthServices, AuthServices>();
 builder.Services.AddScoped<IUserServices, UserServices>();
-
+builder.Services.AddScoped<IParkingLotServices, ParkingLotServices>();
 
 builder.Services.AddAuthentication(options =>
 {

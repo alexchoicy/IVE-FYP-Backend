@@ -11,7 +11,7 @@ namespace api.Controllers
 {
     [ApiVersion("1.0")]
     [ApiController]
-    [Route("api/v{version:apiVersion}/me")]
+    [Route("api/v{version:apiVersion}")]
     public class UserController : ControllerBase
     {
         private readonly IUserServices userServices;
@@ -23,87 +23,84 @@ namespace api.Controllers
             this.httpContextAccessor = httpContextAccessor;
         }
 
-        [HttpGet]
+        [HttpGet("me")]
         [Authorize]
         public IActionResult GetUserInfo()
         {
-            ApiResponse<UserResponeDto> response = new ApiResponse<UserResponeDto>();
             if (httpContextAccessor.HttpContext?.User == null)
             {
-                response.ErrorMessage = "You are unauthorized";
-                response.Success = false;
-                response.StatusCode = 401;
-                return Unauthorized(response);
+                return Unauthorized("You are unauthorized");
             }
             string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
             if (userid == "")
             {
-                response.ErrorMessage = "Some Error Occured, Please try again later.";
-                response.Success = false;
-                response.StatusCode = 400;
-                return BadRequest(response);
+                return Unauthorized("The Token is invalid");
             }
             UserResponeDto? user = userServices.getuserInfo(userid);
             if (user == null)
             {
-                response.ErrorMessage = "User not found";
-                response.Success = false;
-                response.StatusCode = 404;
-                return NotFound(response);
+                return NotFound("User not found");
             }
-            response.Data = user;
-            return Ok(response);
+            return Ok(user);
         }
 
-        [HttpPatch]
+
+        [HttpPatch("users/{userid}")]
         [Authorize]
-        public IActionResult UpdateUserInfo([FromBody] UserUpdateRequestDto userUpdateRequestDto)
+        public IActionResult UpdateUserInfo(string userid, [FromBody] UserUpdateRequestDto userUpdateRequestDto)
         {
-            ApiResponse<UserResponeDto> response = new ApiResponse<UserResponeDto>();
             if (httpContextAccessor.HttpContext?.User == null)
             {
-                response.ErrorMessage = "You are unauthorized";
-                response.Success = false;
-                response.StatusCode = 401;
-                return Unauthorized(response);
+                return Unauthorized("You are unauthorized");
             }
-            string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
-            if (userid == "")
+            string tokenUserId = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+            if (tokenUserId == "")
             {
-                response.ErrorMessage = "Some Error Occured, Please try again later.";
-                response.Success = false;
-                response.StatusCode = 400;
-                return BadRequest(response);
+                return Unauthorized("The Token is invalid");
+            }
+            if (tokenUserId != userid && !httpContextAccessor.HttpContext.User.IsInRole("admin"))
+            {
+                return Unauthorized("You are unauthorized");
             }
             try
             {
-
                 UserResponeDto user = userServices.updateUserInfo(userid, userUpdateRequestDto);
-                response.Data = user;
-                response.StatusCode = 202;
-                return Accepted(response);
+                return Accepted(user);
             }
             catch (UserNotFoundException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 404;
-                return NotFound(response);
+                return NotFound(ex);
             }
             catch (InvalidEmailException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 400;
-                return BadRequest(response);
+                return BadRequest(ex);
             }
             catch (InvalidPhoneNumberException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 400;
-                return BadRequest(response);
+                return BadRequest(ex);
             }
         }
+
+        [HttpGet("users/{userid}")]
+        [Authorize]
+        public IActionResult GetUserInfo(string userid)
+        {
+            if (httpContextAccessor.HttpContext?.User == null)
+            {
+                return Unauthorized("You are unauthorized");
+            }
+            string currentUserId = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+            if (currentUserId == "")
+            {
+                return Unauthorized("The Token is invalid");
+            }
+            UserResponeDto? user = userServices.getuserInfo(userid);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            return Ok(user);
+        }
+
     }
 }

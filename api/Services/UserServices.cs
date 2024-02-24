@@ -29,7 +29,7 @@ namespace api.Services
         public UserResponeDto? getuserInfo(string userID)
         {
             int id = Convert.ToInt32(userID);
-            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userID == id);
+            Users? user = normalDataBaseContext.Users.FirstOrDefault(x => x.userID == id);
             if (user == null)
             {
                 return null;
@@ -50,7 +50,7 @@ namespace api.Services
         public UserResponeDto updateUserInfo(string userID, UserUpdateRequestDto userUpdateRequestDto)
         {
             int id = Convert.ToInt32(userID);
-            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userID == id);
+            Users? user = normalDataBaseContext.Users.FirstOrDefault(x => x.userID == id);
             if (user == null)
             {
                 throw new UserNotFoundException("User not found");
@@ -85,7 +85,7 @@ namespace api.Services
             }
 
             normalDataBaseContext.SaveChanges();
-            
+
             return new UserResponeDto
             {
                 userID = user.userID,
@@ -111,6 +111,6 @@ namespace api.Services
             string phoneRegex = @"^[2-9]\d{7}$";
             return Regex.IsMatch(phoneNumber, phoneRegex);
         }
-        
+
     }
 }

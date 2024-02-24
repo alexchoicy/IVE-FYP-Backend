@@ -23,133 +23,88 @@ namespace api.Controllers
         [HttpPost("login")]
         public ActionResult<ApiResponse<AuthResponeDto>> Login([FromBody] LoginRequestDto loginRequestDto)
         {
-            ApiResponse<AuthResponeDto> response = new ApiResponse<AuthResponeDto>();
-            if (loginRequestDto == null)
+            if (!ModelState.IsValid)
             {
-                response.ErrorMessage = "Request is null";
-                response.Success = false;
-                response.StatusCode = 400;
-                return BadRequest(response);
+                return BadRequest("Request is invalid");
             }
             try
             {
                 AuthResponeDto? data = authServices.login(loginRequestDto);
-                response.Data = data;
-                return Ok(response);
+                return Ok(data);
             }
             catch (UserNotFoundException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 404;
-                return NotFound(response);
+                return NotFound(ex);
             }
             catch (UserNotActiveException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.StatusCode = 401;
-                response.Success = false;
-                return Unauthorized(response);
+                return Unauthorized(ex);
             }
             catch (UserLockedException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.StatusCode = 429;
-                response.Success = false;
-                return StatusCode(429, response);
+                return StatusCode(429, ex);
             }
             catch (InvalidCredentialsException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 401;
-                return Unauthorized(response);
+                return Unauthorized(ex);
             }
         }
         [HttpPost("register")]
         public ActionResult<ApiResponse<AuthResponeDto>> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
-            ApiResponse<AuthResponeDto> response = new ApiResponse<AuthResponeDto>();
-            if (registerRequestDto == null)
+            if (!ModelState.IsValid)
             {
-                response.ErrorMessage = "Request is null";
-                response.Success = false;
-                response.StatusCode = 400;
-                return BadRequest(response);
+                return BadRequest("Request is invalid");
             }
             try
             {
                 AuthResponeDto? data = authServices.register(registerRequestDto);
-                response.Data = data;
-                response.StatusCode = 201;
-                return Created("", response);
+                return Created("", data);
             }
             catch (UserAlreadyExistException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 409;
-                return Conflict(response);
+                return Conflict(ex.Message);
             }
             catch (InvalidCredentialsException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 400;
-                return BadRequest(response);
+                return BadRequest(ex.Message);
             }
         }
 
         [HttpPost("reset_password")]
         public ActionResult<ApiResponse<string>> ResetPassword([FromBody] ResetPasswordRequestDto resetPasswordRequestDto)
         {
-            ApiResponse<string> response = new ApiResponse<string>();
-            if (resetPasswordRequestDto == null)
+            if (!ModelState.IsValid)
             {
-                response.ErrorMessage = "Request is null";
-                response.Success = false;
-                response.StatusCode = 400;
-                return BadRequest(response);
+                return BadRequest("Request is invalid");
             }
             try
             {
                 authServices.resetPassword(resetPasswordRequestDto);
-                response.Data = "Reset password link has been sent to the email. Please check your email to reset your password.";
-                response.StatusCode = 202;
-                return Accepted(response);
+                //MR.ACCEPTED CAN"T SEND THE MESSAGE SIRRRRRRRRRRRRRRR
+                return StatusCode(402, "Reset password link has been sent to the email. Please check your email to reset your password.");
             }
             catch (UserNotFoundException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 404;
-                return NotFound(response);
+                return NotFound(ex.Message);
             }
         }
 
         [HttpPost("reset_password/veify")]
         public ActionResult<ApiResponse<string>> VerifyResetPassword([FromBody] ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto)
         {
-            ApiResponse<string> response = new ApiResponse<string>();
-            if (resetPasswordVeifyRequestDto == null)
+            if (!ModelState.IsValid)
             {
-                response.ErrorMessage = "Request is null";
-                response.Success = false;
-                response.StatusCode = 400;
-                return BadRequest(response);
+                return BadRequest("Request is invalid");
             }
             try
             {
                 authServices.resetPasswordVeify(resetPasswordVeifyRequestDto);
-                response.Data = "Success";
-                return Ok(response);
+                return Ok("Success");
             }
             catch (InvalidCredentialsException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 401;
-                return Unauthorized(response);
+                return Unauthorized(ex.Message);
             }
         }
 
@@ -157,46 +112,30 @@ namespace api.Controllers
         public ActionResult<ApiResponse<AuthResponeDto>> AdminLogin([FromBody] LoginRequestDto loginRequestDto)
         {
             ApiResponse<AuthResponeDto> response = new ApiResponse<AuthResponeDto>();
-            if (loginRequestDto == null)
+            if (!ModelState.IsValid)
             {
-                response.ErrorMessage = "Request is null";
-                response.Success = false;
-                response.StatusCode = 400;
-                return BadRequest(response);
+                return BadRequest("Request is invalid");
             }
             try
             {
                 AuthResponeDto? data = authServices.AdminLogin(loginRequestDto);
-                response.Data = data;
-                return Ok(response);
+                return Ok(data);
             }
             catch (UserNotFoundException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 404;
-                return NotFound(response);
+                return NotFound(ex.Message);
             }
             catch (UserNotActiveException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 401;
-                return Unauthorized(response);
+                return Unauthorized(ex.Message);
             }
             catch (UserLockedException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 429;
-                return StatusCode(429, response);
+                return StatusCode(429, ex.Message);
             }
             catch (InvalidCredentialsException ex)
             {
-                response.ErrorMessage = ex.Message;
-                response.Success = false;
-                response.StatusCode = 401;
-                return Unauthorized(response);
+                return Unauthorized(ex.Message);
             }
         }
     }
