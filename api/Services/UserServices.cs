@@ -32,7 +32,7 @@ namespace api.Services
             Users? user = normalDataBaseContext.Users.FirstOrDefault(x => x.userID == id);
             if (user == null)
             {
-                return null;
+                throw new UserNotFoundException("User not found");
             }
             return new UserResponeDto
             {

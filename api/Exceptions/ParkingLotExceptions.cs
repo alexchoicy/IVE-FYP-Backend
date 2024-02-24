@@ -5,28 +5,28 @@ using System.Threading.Tasks;
 
 namespace api.Exceptions
 {
-    public class ParkingLotNotFoundException : Exception
+    public class ParkingLotNotFoundException : BaseCustomExceptions
     {
         public ParkingLotNotFoundException(string message) : base(message)
         {
         }
     }
 
-    public class ParkingLotPriceTimesInvalidException : Exception
+    public class ParkingLotPriceTimesInvalidException : BaseCustomExceptions
     {
         public ParkingLotPriceTimesInvalidException(string message) : base(message)
         {
         }
     }
 
-    public class ParkingLotPriceTimeInvalidException : Exception
+    public class ParkingLotPriceTimeInvalidException : BaseCustomExceptions
     {
         public ParkingLotPriceTimeInvalidException(string message) : base(message)
         {
         }
     }
 
-    public class ParkingLotPriceInvalidException : Exception
+    public class ParkingLotPriceInvalidException : BaseCustomExceptions
     {
         public ParkingLotPriceInvalidException(string message) : base(message)
         {

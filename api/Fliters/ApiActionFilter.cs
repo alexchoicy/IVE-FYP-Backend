@@ -1,3 +1,4 @@
+using api.Exceptions;
 using api.utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -22,10 +23,16 @@ namespace api.Fliters
                 {
                     StatusCode = objectResult.StatusCode ?? StatusCodes.Status200OK,
                 };
-                if (objectResult.Value is Exception exception)
+                if (objectResult.Value is BaseCustomExceptions customExceptions)
                 {
                     response.Success = false;
-                    response.ErrorMessage = exception.Message;
+                    response.ErrorMessage = customExceptions.Message;
+                    Log.Error($"Failed: Request from {ip} to {endpoint}, {method}, {action}, {customExceptions.GetType().Name}");
+                }
+                else if (objectResult.Value is Exception exception)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Internal Server Error";
                     Log.Error($"Failed: Request from {ip} to {endpoint}, {method}, {action}, {exception.GetType().Name}");
                 }
                 else

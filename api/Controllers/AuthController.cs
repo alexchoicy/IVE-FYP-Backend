@@ -48,6 +48,10 @@ namespace api.Controllers
             {
                 return Unauthorized(ex);
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
         }
         [HttpPost("register")]
         public ActionResult<ApiResponse<AuthResponeDto>> Register([FromBody] RegisterRequestDto registerRequestDto)
@@ -63,11 +67,15 @@ namespace api.Controllers
             }
             catch (UserAlreadyExistException ex)
             {
-                return Conflict(ex.Message);
+                return Conflict(ex);
             }
             catch (InvalidCredentialsException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(ex);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
             }
         }
 
@@ -86,7 +94,11 @@ namespace api.Controllers
             }
             catch (UserNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(ex);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
             }
         }
 
@@ -104,7 +116,11 @@ namespace api.Controllers
             }
             catch (InvalidCredentialsException ex)
             {
-                return Unauthorized(ex.Message);
+                return Unauthorized(ex);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
             }
         }
 
@@ -123,19 +139,23 @@ namespace api.Controllers
             }
             catch (UserNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(ex);
             }
             catch (UserNotActiveException ex)
             {
-                return Unauthorized(ex.Message);
+                return Unauthorized(ex);
             }
             catch (UserLockedException ex)
             {
-                return StatusCode(429, ex.Message);
+                return StatusCode(429, ex);
             }
             catch (InvalidCredentialsException ex)
             {
-                return Unauthorized(ex.Message);
+                return Unauthorized(ex);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
             }
         }
     }

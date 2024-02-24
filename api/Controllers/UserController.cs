@@ -36,12 +36,19 @@ namespace api.Controllers
             {
                 return Unauthorized("The Token is invalid");
             }
-            UserResponeDto? user = userServices.getuserInfo(userid);
-            if (user == null)
+            try
             {
-                return NotFound("User not found");
+                UserResponeDto? user = userServices.getuserInfo(userid);
+                return Ok(user);
             }
-            return Ok(user);
+            catch (UserNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
         }
 
 
@@ -79,6 +86,10 @@ namespace api.Controllers
             {
                 return BadRequest(ex);
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
         }
 
         [HttpGet("users/{userid}")]
@@ -94,12 +105,20 @@ namespace api.Controllers
             {
                 return Unauthorized("The Token is invalid");
             }
-            UserResponeDto? user = userServices.getuserInfo(userid);
-            if (user == null)
+            try
             {
-                return NotFound("User not found");
+                UserResponeDto? user = userServices.getuserInfo(userid);
+                return Ok(user);
             }
-            return Ok(user);
+            catch (UserNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
+
         }
 
     }

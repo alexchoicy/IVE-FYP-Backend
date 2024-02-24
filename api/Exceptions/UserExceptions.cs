@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 
 namespace api.Exceptions
 {
-    public class InvalidEmailException : Exception
+    public class InvalidEmailException : BaseCustomExceptions
     {
         public InvalidEmailException(string message) : base(message)
         {
         }
     }
 
-    public class InvalidPhoneNumberException : Exception
+    public class InvalidPhoneNumberException : BaseCustomExceptions
     {
         public InvalidPhoneNumberException(string message) : base(message)
         {
