@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Models.Respone;
+using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,6 +15,11 @@ namespace api.Controllers
     [Route("api/v{version:apiVersion}/parkinglots/{parkingLotId}/parkingspaces")]
     public class ParkingSpacesController : ControllerBase
     {
+        private readonly ParkingLotServices parkingLotServices;
+        public ParkingSpacesController(ParkingLotServices parkingLotServices)
+        {
+            this.parkingLotServices = parkingLotServices;
+        }
 
         [HttpGet]
         public IActionResult GetParkingSpaces(int parkingLotId)
