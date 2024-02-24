@@ -44,7 +44,7 @@ namespace api.Services
         {
 
 
-            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.username);
+            Users? user = normalDataBaseContext.Users.FirstOrDefault(x => x.userName == loginRequestDto.username);
 
             if (user == null)
             {
@@ -111,7 +111,7 @@ namespace api.Services
 
         public AuthResponeDto? register(RegisterRequestDto registerRequestDto)
         {
-            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == registerRequestDto.username);
+            Users? user = normalDataBaseContext.Users.FirstOrDefault(x => x.userName == registerRequestDto.username);
 
             if (user != null)
             {
@@ -136,7 +136,7 @@ namespace api.Services
                 loginAttempts = 0,
             };
 
-            normalDataBaseContext.users.Add(newUser);
+            normalDataBaseContext.Users.Add(newUser);
             normalDataBaseContext.SaveChanges();
 
             AuthResponeDto response = new AuthResponeDto
@@ -153,7 +153,7 @@ namespace api.Services
         }
         public bool resetPassword(ResetPasswordRequestDto resetPasswordRequestDto)
         {
-            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userName == resetPasswordRequestDto.username);
+            Users? user = normalDataBaseContext.Users.FirstOrDefault(x => x.userName == resetPasswordRequestDto.username);
 
             if (user == null)
             {
@@ -214,7 +214,7 @@ namespace api.Services
                 throw new InvalidCredentialsException("The password is not strong enough, please make your password longer than 8 characters, and include at least one number, one uppercase letter, and one lowercase letter.");
             }
 
-            Users? user = normalDataBaseContext.users.FirstOrDefault(x => x.userID == int.Parse(userid));
+            Users? user = normalDataBaseContext.Users.FirstOrDefault(x => x.userID == int.Parse(userid));
 
             if (user == null)
             {
