@@ -7,4 +7,10 @@ namespace api.Exceptions
         }
     }
 
+    public class RequestInvalidException : BaseCustomExceptions
+    {
+        public RequestInvalidException(string message) : base(message)
+        {
+        }
+    }
 }

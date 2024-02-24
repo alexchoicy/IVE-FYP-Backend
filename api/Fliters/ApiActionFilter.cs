@@ -36,12 +36,6 @@ namespace api.Fliters
                     response.ErrorMessage = "Internal Server Error";
                     Log.Error($"Failed: Request from {ip} to {endpoint}, {method}, {action}, {exception.GetType().Name}");
                 }
-                else if (statusCode == StatusCodes.Status400BadRequest)
-                {
-                    response.Success = false;
-                    response.ErrorMessage = objectResult.Value?.ToString();
-                    Log.Error($"Failed: Request from {ip} to {endpoint}, {method}, {action}");
-                }
                 else
                 {
                     response.Success = true;

@@ -27,23 +27,27 @@ namespace api.Controllers
         [Authorize]
         public IActionResult GetUserInfo()
         {
-            if (httpContextAccessor.HttpContext?.User == null)
-            {
-                return Unauthorized("You are unauthorized");
-            }
-            string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
-            if (userid == "")
-            {
-                return Unauthorized("The Token is invalid");
-            }
             try
             {
+                if (httpContextAccessor.HttpContext?.User == null)
+                {
+                    throw new TokenInvalidException("You are unauthorized");
+                }
+                string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+                if (userid == "")
+                {
+                    throw new TokenInvalidException("The Token is invalid");
+                }
                 UserResponeDto? user = userServices.getuserInfo(userid);
                 return Ok(user);
             }
             catch (UserNotFoundException ex)
             {
                 return NotFound(ex);
+            }
+            catch (TokenInvalidException ex)
+            {
+                return Unauthorized(ex);
             }
 
         }
@@ -53,21 +57,21 @@ namespace api.Controllers
         [Authorize]
         public IActionResult UpdateUserInfo(string userid, [FromBody] UserUpdateRequestDto userUpdateRequestDto)
         {
-            if (httpContextAccessor.HttpContext?.User == null)
-            {
-                return Unauthorized("You are unauthorized");
-            }
-            string tokenUserId = httpContextAccessor.HttpContext.User.getUserID() ?? "";
-            if (tokenUserId == "")
-            {
-                return Unauthorized("The Token is invalid");
-            }
-            if (tokenUserId != userid && !httpContextAccessor.HttpContext.User.IsInRole("admin"))
-            {
-                return Unauthorized("You are unauthorized");
-            }
             try
             {
+                if (httpContextAccessor.HttpContext?.User == null)
+                {
+                    throw new TokenInvalidException("You are unauthorized");
+                }
+                string tokenUserId = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+                if (tokenUserId == "")
+                {
+                    throw new TokenInvalidException("The Token is invalid");
+                }
+                if (tokenUserId != userid && !httpContextAccessor.HttpContext.User.IsInRole("admin"))
+                {
+                    throw new TokenInvalidException("You are unauthorized");
+                }
                 UserResponeDto user = userServices.updateUserInfo(userid, userUpdateRequestDto);
                 return Accepted(user);
             }
@@ -83,6 +87,10 @@ namespace api.Controllers
             {
                 return BadRequest(ex);
             }
+            catch (TokenInvalidException ex)
+            {
+                return Unauthorized(ex);
+            }
 
         }
 
@@ -90,23 +98,27 @@ namespace api.Controllers
         [Authorize]
         public IActionResult GetUserInfo(string userid)
         {
-            if (httpContextAccessor.HttpContext?.User == null)
-            {
-                return Unauthorized("You are unauthorized");
-            }
-            string currentUserId = httpContextAccessor.HttpContext.User.getUserID() ?? "";
-            if (currentUserId == "")
-            {
-                return Unauthorized("The Token is invalid");
-            }
             try
             {
+                if (httpContextAccessor.HttpContext?.User == null)
+                {
+                    throw new TokenInvalidException("You are unauthorized");
+                }
+                string currentUserId = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+                if (currentUserId == "")
+                {
+                    throw new TokenInvalidException("The Token is invalid");
+                }
                 UserResponeDto? user = userServices.getuserInfo(userid);
                 return Ok(user);
             }
             catch (UserNotFoundException ex)
             {
                 return NotFound(ex);
+            }
+            catch (TokenInvalidException ex)
+            {
+                return Unauthorized(ex);
             }
 
 

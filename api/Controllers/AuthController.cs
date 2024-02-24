@@ -23,12 +23,12 @@ namespace api.Controllers
         [HttpPost("login")]
         public ActionResult<ApiResponse<AuthResponeDto>> Login([FromBody] LoginRequestDto loginRequestDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Request is invalid");
-            }
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    throw new RequestInvalidException("Request is invalid");
+                }
                 AuthResponeDto? data = authServices.login(loginRequestDto);
                 return Ok(data);
             }
@@ -48,17 +48,20 @@ namespace api.Controllers
             {
                 return Unauthorized(ex);
             }
-
+            catch (RequestInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
         }
         [HttpPost("register")]
         public ActionResult<ApiResponse<AuthResponeDto>> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Request is invalid");
-            }
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    throw new RequestInvalidException("Request is invalid");
+                }
                 AuthResponeDto? data = authServices.register(registerRequestDto);
                 return Created("", data);
             }
@@ -70,18 +73,21 @@ namespace api.Controllers
             {
                 return BadRequest(ex);
             }
-
+            catch (RequestInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
         }
 
         [HttpPost("reset_password")]
         public ActionResult<ApiResponse<string>> ResetPassword([FromBody] ResetPasswordRequestDto resetPasswordRequestDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Request is invalid");
-            }
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    throw new RequestInvalidException("Request is invalid");
+                }
                 authServices.resetPassword(resetPasswordRequestDto);
                 //MR.ACCEPTED CAN"T SEND THE MESSAGE SIRRRRRRRRRRRRRRR
                 return StatusCode(StatusCodes.Status202Accepted, "Reset password link has been sent to the email. Please check your email to reset your password.");
@@ -90,18 +96,22 @@ namespace api.Controllers
             {
                 return NotFound(ex);
             }
+            catch (RequestInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
 
         }
 
         [HttpPost("reset_password/veify")]
         public ActionResult<ApiResponse<string>> VerifyResetPassword([FromBody] ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Request is invalid");
-            }
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    throw new RequestInvalidException("Request is invalid");
+                }
                 authServices.resetPasswordVeify(resetPasswordVeifyRequestDto);
                 return Ok("Success");
             }
@@ -109,19 +119,21 @@ namespace api.Controllers
             {
                 return Unauthorized(ex);
             }
-
+            catch (RequestInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
         }
 
         [HttpPost("admin/login")]
         public ActionResult<ApiResponse<AuthResponeDto>> AdminLogin([FromBody] LoginRequestDto loginRequestDto)
         {
-            ApiResponse<AuthResponeDto> response = new ApiResponse<AuthResponeDto>();
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Request is invalid");
-            }
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    throw new RequestInvalidException("Request is invalid");
+                }
                 AuthResponeDto? data = authServices.AdminLogin(loginRequestDto);
                 return Ok(data);
             }
@@ -140,6 +152,10 @@ namespace api.Controllers
             catch (InvalidCredentialsException ex)
             {
                 return Unauthorized(ex);
+            }
+            catch (RequestInvalidException ex)
+            {
+                return BadRequest(ex);
             }
 
         }

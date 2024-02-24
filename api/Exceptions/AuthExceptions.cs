@@ -38,4 +38,10 @@ namespace api.Exceptions
         {
         }
     }
+    public class TokenInvalidException : BaseCustomExceptions
+    {
+        public TokenInvalidException(string message) : base(message)
+        {
+        }
+    }
 }
