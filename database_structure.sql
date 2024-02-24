@@ -38,9 +38,19 @@ CREATE TABLE `ParkingLots` (
     `Longitude` decimal(11, 8) NOT NULL,
     `TotalSpaces` int NOT NULL,
     `AvailableSpaces` int NOT NULL,
-    `Prices` varchar(255) NOT NULL,
+    `Prices` json NOT NULL,
 
     PRIMARY KEY (`LotID`)
+);
+
+CREATE TABLE `ParkingPlans` (
+    `PlanID` int NOT NULL AUTO_INCREMENT,
+    `Name` varchar(50) NOT NULL,
+    `PlanType` tinyint NOT NULL,
+    `Description` varchar(255) NOT NULL,
+    `Price` decimal(10, 2) NOT NULL,
+    `DurationMonths` int NOT NULL,
+    PRIMARY KEY (`PlanID`)
 );
 
 CREATE TABLE `ParkingSpaces` (
@@ -56,16 +66,6 @@ CREATE TABLE `ParkingSpaces` (
     PRIMARY KEY (`SpaceID`),
     FOREIGN KEY (`LotID`) REFERENCES `ParkingLots`(`LotID`)
     FOREIGN KEY (`CurrentPlanID`) REFERENCES `ParkingPlans`(`PlanID`)
-);
-
-CREATE TABLE `ParkingPlans` (
-    `PlanID` int NOT NULL AUTO_INCREMENT,
-    `Name` varchar(50) NOT NULL,
-    `PlanType` tinyint NOT NULL,
-    `Description` varchar(255) NOT NULL,
-    `Price` decimal(10, 2) NOT NULL,
-    `DurationMonths` int NOT NULL,
-    PRIMARY KEY (`PlanID`)
 );
 
 CREATE TABLE `ParkingSpacePlans` (
