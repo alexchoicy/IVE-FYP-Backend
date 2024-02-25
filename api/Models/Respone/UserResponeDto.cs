@@ -19,6 +19,7 @@ namespace api.Models.Respone
 
     public class StaffReponseDto
     {
+        public string? token { get; set; }
         public int userID { get; set; }
         public required string userName { get; set; }
         public required string firstName { get; set; }
