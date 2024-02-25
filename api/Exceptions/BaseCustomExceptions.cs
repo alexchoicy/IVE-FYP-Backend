@@ -13,4 +13,11 @@ namespace api.Exceptions
         {
         }
     }
+
+    public class DataBaseUpdateException : BaseCustomExceptions
+    {
+        public DataBaseUpdateException(string message) : base(message)
+        {
+        }
+    }
 }

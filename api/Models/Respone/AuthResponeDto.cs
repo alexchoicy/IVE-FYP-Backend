@@ -14,4 +14,8 @@ namespace api.Models.Respone
         public required string lastName { get; set; }
         public required string email { get; set; }
     }
+    public class StaffAuthResponeDto : AuthResponeDto
+    {
+        public int carParkID { get; set; }
+    }
 }

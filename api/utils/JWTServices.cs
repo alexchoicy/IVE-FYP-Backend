@@ -88,7 +88,9 @@ namespace api.utils
             List<Claim> claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.NameId, staffUsers.UserID.ToString()),
-                new Claim("type", "admin")
+                new Claim(ClaimTypes.Role, "admin"),
+                new Claim("type", "access-token"),
+                new Claim("CarParkID", staffUsers.CarParkID.ToString())
             };
 
             SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);

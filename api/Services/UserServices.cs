@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using api.Exceptions;
 using api.Models;
 using api.Models.Entity.NormalDB;
+using api.Models.Entity.StaffDB;
 using api.Models.Request;
 using api.Models.Respone;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Services
 {
@@ -16,14 +18,17 @@ namespace api.Services
     {
         UserResponeDto? getuserInfo(string userID);
         UserResponeDto updateUserInfo(string userID, UserUpdateRequestDto userUpdateRequestDto);
+        StaffReponseDto getStaffInfo(string userID);
     }
 
     public class UserServices : IUserServices
     {
         private readonly NormalDataBaseContext normalDataBaseContext;
-        public UserServices(NormalDataBaseContext normalDataBaseContext)
+        private readonly StaffDataBaseContext staffDataBaseContext;
+        public UserServices(NormalDataBaseContext normalDataBaseContext, StaffDataBaseContext staffDataBaseContext)
         {
             this.normalDataBaseContext = normalDataBaseContext;
+            this.staffDataBaseContext = staffDataBaseContext;
         }
 
         public UserResponeDto? getuserInfo(string userID)
@@ -49,57 +54,82 @@ namespace api.Services
 
         public UserResponeDto updateUserInfo(string userID, UserUpdateRequestDto userUpdateRequestDto)
         {
+            try
+            {
+                int id = Convert.ToInt32(userID);
+                Users? user = normalDataBaseContext.Users.FirstOrDefault(x => x.userID == id);
+                if (user == null)
+                {
+                    throw new UserNotFoundException("User not found");
+                }
+
+                if (userUpdateRequestDto.email != null)
+                {
+                    if (!IsValidEmail(userUpdateRequestDto.email))
+                    {
+                        throw new InvalidEmailException("Invalid email");
+                    }
+                    user.email = userUpdateRequestDto.email;
+                }
+
+                if (userUpdateRequestDto.firstName != null)
+                {
+                    user.firstName = userUpdateRequestDto.firstName;
+                }
+
+                if (userUpdateRequestDto.lastName != null)
+                {
+                    user.lastName = userUpdateRequestDto.lastName;
+                }
+
+                if (userUpdateRequestDto.phoneNumber != null)
+                {
+                    if (!IsValidPhoneNumber(userUpdateRequestDto.phoneNumber))
+                    {
+                        throw new InvalidPhoneNumberException("Invalid phone number");
+                    }
+                    user.phoneNumber = userUpdateRequestDto.phoneNumber;
+                }
+
+                normalDataBaseContext.SaveChanges();
+
+                return new UserResponeDto
+                {
+                    userID = user.userID,
+                    userName = user.userName,
+                    email = user.email ?? "you have not set email yet",
+                    firstName = user.firstName ?? "you have not set first name yet",
+                    lastName = user.lastName ?? "you have not set last name yet",
+                    phoneNumber = user.phoneNumber ?? "you have not set phone number yet",
+                    createdAt = user.createdAt,
+                    isActive = user.isActive
+                };
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new DataBaseUpdateException("Your Email or Phone number is already used by another user, please try another one");
+            }
+        }
+
+        public StaffReponseDto getStaffInfo(string userID)
+        {
             int id = Convert.ToInt32(userID);
-            Users? user = normalDataBaseContext.Users.FirstOrDefault(x => x.userID == id);
+            StaffUsers? user = staffDataBaseContext.users.FirstOrDefault(x => x.UserID == id);
             if (user == null)
             {
                 throw new UserNotFoundException("User not found");
             }
-
-            if (userUpdateRequestDto.email != null)
+            return new StaffReponseDto
             {
-                if (!IsValidEmail(userUpdateRequestDto.email))
-                {
-                    throw new InvalidEmailException("Invalid email");
-                }
-                user.email = userUpdateRequestDto.email;
-            }
-
-            if (userUpdateRequestDto.firstName != null)
-            {
-                user.firstName = userUpdateRequestDto.firstName;
-            }
-
-            if (userUpdateRequestDto.lastName != null)
-            {
-                user.lastName = userUpdateRequestDto.lastName;
-            }
-
-            if (userUpdateRequestDto.phoneNumber != null)
-            {
-                if (!IsValidPhoneNumber(userUpdateRequestDto.phoneNumber))
-                {
-                    throw new InvalidPhoneNumberException("Invalid phone number");
-                }
-                user.phoneNumber = userUpdateRequestDto.phoneNumber;
-            }
-
-            normalDataBaseContext.SaveChanges();
-
-            return new UserResponeDto
-            {
-                userID = user.userID,
+                userID = user.UserID,
                 userName = user.userName,
-                email = user.email ?? "you have not set email yet",
-                firstName = user.firstName ?? "you have not set first name yet",
-                lastName = user.lastName ?? "you have not set last name yet",
-                phoneNumber = user.phoneNumber ?? "you have not set phone number yet",
-                createdAt = user.createdAt,
-                isActive = user.isActive
+                email = user.Email ?? "you have not set email yet",
+                firstName = user.FirstName ?? "you have not set first name yet",
+                lastName = user.LastName ?? "you have not set last name yet",
+                phoneNumber = user.PhoneNumber ?? "you have not set phone number yet",
+                carParkID = user.CarParkID
             };
-
         }
-
         public static bool IsValidEmail(string email)
         {
             string emailRegex = @"^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$";

@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using api.Models.Respone;
 using api.Models.Request;
 using api.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
@@ -38,6 +39,13 @@ namespace api.Controllers
                 {
                     throw new TokenInvalidException("The Token is invalid");
                 }
+
+                if (httpContextAccessor.HttpContext.User.IsInRole("admin"))
+                {
+                    StaffReponseDto? staff = userServices.getStaffInfo(userid);
+                    return Ok(staff);
+                }
+
                 UserResponeDto? user = userServices.getuserInfo(userid);
                 return Ok(user);
             }
@@ -52,6 +60,37 @@ namespace api.Controllers
 
         }
 
+        [HttpGet("users/{userid}")]
+        [Authorize]
+        public IActionResult GetUserInfo(string userid)
+        {
+            try
+            {
+                if (httpContextAccessor.HttpContext?.User == null)
+                {
+                    throw new TokenInvalidException("You are unauthorized");
+                }
+                string tokenUserId = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+                if (tokenUserId == "")
+                {
+                    throw new TokenInvalidException("The Token is invalid");
+                }
+                if (tokenUserId != userid && !httpContextAccessor.HttpContext.User.IsInRole("admin"))
+                {
+                    throw new TokenInvalidException("You are unauthorized");
+                }
+                UserResponeDto? user = userServices.getuserInfo(userid);
+                return Ok(user);
+            }
+            catch (UserNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+            catch (TokenInvalidException ex)
+            {
+                return Unauthorized(ex);
+            }
+        }
 
         [HttpPatch("users/{userid}")]
         [Authorize]
@@ -91,37 +130,10 @@ namespace api.Controllers
             {
                 return Unauthorized(ex);
             }
-
-        }
-
-        [HttpGet("users/{userid}")]
-        [Authorize]
-        public IActionResult GetUserInfo(string userid)
-        {
-            try
+            catch (DataBaseUpdateException ex)
             {
-                if (httpContextAccessor.HttpContext?.User == null)
-                {
-                    throw new TokenInvalidException("You are unauthorized");
-                }
-                string currentUserId = httpContextAccessor.HttpContext.User.getUserID() ?? "";
-                if (currentUserId == "")
-                {
-                    throw new TokenInvalidException("The Token is invalid");
-                }
-                UserResponeDto? user = userServices.getuserInfo(userid);
-                return Ok(user);
+                return BadRequest(ex);
             }
-            catch (UserNotFoundException ex)
-            {
-                return NotFound(ex);
-            }
-            catch (TokenInvalidException ex)
-            {
-                return Unauthorized(ex);
-            }
-
-
         }
 
     }

@@ -21,7 +21,7 @@ namespace api.Services
         AuthResponeDto? register(RegisterRequestDto registerRequestDto);
         bool resetPassword(ResetPasswordRequestDto resetPasswordRequestDto);
         bool resetPasswordVeify(ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto);
-        AuthResponeDto? AdminLogin(LoginRequestDto loginRequestDto);
+        StaffAuthResponeDto? AdminLogin(LoginRequestDto loginRequestDto);
     }
 
     public class AuthServices : IAuthServices
@@ -248,7 +248,7 @@ namespace api.Services
         }
 
 
-        public AuthResponeDto AdminLogin(LoginRequestDto loginRequestDto)
+        public StaffAuthResponeDto AdminLogin(LoginRequestDto loginRequestDto)
         {
             StaffUsers? user = staffDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.username);
 
@@ -262,7 +262,7 @@ namespace api.Services
                 throw new InvalidCredentialsException("The password is incorrect");
             }
 
-            AuthResponeDto response = new AuthResponeDto
+            StaffAuthResponeDto response = new StaffAuthResponeDto
             {
                 Token = jwtServices.CreateAdminToken(user),
                 userName = user.userName,
@@ -270,6 +270,7 @@ namespace api.Services
                 firstName = user.FirstName ?? "",
                 lastName = user.LastName ?? "",
                 phoneNumber = user.PhoneNumber ?? "",
+                carParkID = user.CarParkID
             };
             return response;
         }

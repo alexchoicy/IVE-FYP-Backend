@@ -13,9 +13,11 @@ namespace api.Models.Entity.NormalDB
         public required string userName { get; set; }
         public required string password { get; set; }
         public required string salt { get; set; }
+        [ConcurrencyCheck]
         public string? phoneNumber { get; set; }
         public string? firstName { get; set; }
         public string? lastName { get; set; }
+        [ConcurrencyCheck]
         public string? email { get; set; }
         public required DateTime createdAt { get; set; }
         public required bool isActive { get; set; }

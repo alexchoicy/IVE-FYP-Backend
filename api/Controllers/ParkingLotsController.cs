@@ -1,6 +1,9 @@
+using api.Exceptions;
 using api.Models.Entity.NormalDB;
+using api.Models.Request;
 using api.Models.Respone;
 using api.Services;
+using api.utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,31 +26,90 @@ namespace api.Controllers
         [HttpGet]
         public IActionResult GetParkingLots()
         {
-
-            IEnumerable<ParkingLotReponseDto>? parkingLotReponseDto = parkingLotServices.GetParkingLots();
-            if (parkingLotReponseDto == null)
+            try
             {
-                return NotFound();
+                IEnumerable<ParkingLotReponseDto>? parkingLotsData = parkingLotServices.GetParkingLots();
+                return Ok(parkingLotsData);
             }
-            return Ok(parkingLotReponseDto);
+            catch (ParkingLotNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+
         }
 
         [HttpGet("{id}")]
         public IActionResult GetParkingLot(int id)
         {
-            return Ok();
+            try
+            {
+                ParkingLotReponseDto? parkingLotData = parkingLotServices.GetParkingLot(id);
+                return Ok(parkingLotData);
+            }
+            catch (ParkingLotNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPatch("{id}")]
-        public IActionResult UpdateParkingLot(int id)
+        public IActionResult UpdateParkingLot(int id, [FromBody] UpdateParkingLotInfoDto updateParkingLotInfoDto)
         {
-            return Ok();
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    throw new RequestInvalidException("Invalid model");
+                }
+                ParkingLotReponseDto updated = parkingLotServices.UpdateParkingLotInfo(id, updateParkingLotInfoDto);
+                return Ok(updated);
+            }
+            catch (ParkingLotNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+
+            catch (RequestInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}/prices")]
-        public IActionResult UpdateParkingLotPrices(int id)
+        public IActionResult UpdateParkingLotPrices(int id, [FromBody] IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
         {
-            return Ok();
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    throw new RequestInvalidException("Invalid model");
+                }
+                ParkingLotReponseDto updated = parkingLotServices.UpdateParkingLotPrices(id, updateParkingLotPricesDto);
+                return Ok(updated);
+            }
+            catch (ParkingLotNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+            catch (ParkingLotPriceTimesInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (ParkingLotPriceTimeInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (ParkingLotPriceInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (RequestInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
         }
     }
 }

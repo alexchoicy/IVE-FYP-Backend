@@ -16,4 +16,15 @@ namespace api.Models.Respone
         public DateTime createdAt { get; set; }
         public bool isActive { get; set; }
     }
+
+    public class StaffReponseDto
+    {
+        public int userID { get; set; }
+        public required string userName { get; set; }
+        public required string firstName { get; set; }
+        public required string lastName { get; set; }
+        public required string email { get; set; }
+        public required string phoneNumber { get; set; }
+        public int carParkID { get; set; }
+    }
 }

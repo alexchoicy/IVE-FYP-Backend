@@ -13,6 +13,9 @@ namespace api.Services
     public interface IParkingLotServices
     {
         IEnumerable<ParkingLotReponseDto>? GetParkingLots();
+        ParkingLotReponseDto? GetParkingLot(int id);
+        ParkingLotReponseDto UpdateParkingLotInfo(int id, UpdateParkingLotInfoDto updateParkingLotInfoDto);
+        ParkingLotReponseDto UpdateParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto);
     }
 
     public class ParkingLotServices : IParkingLotServices
@@ -35,7 +38,7 @@ namespace api.Services
                 longitude = x.longitude,
                 totalSpaces = x.totalSpaces,
                 availableSpaces = x.availableSpaces,
-                prices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(x.prices)
+                prices = null
             });
             if (parkingLots == null)
             {
@@ -64,7 +67,7 @@ namespace api.Services
             };
         }
 
-        public bool UpdateParkingLotInfo(int id, UpdateParkingLotInfoDto updateParkingLotInfoDto)
+        public ParkingLotReponseDto UpdateParkingLotInfo(int id, UpdateParkingLotInfoDto updateParkingLotInfoDto)
         {
             ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == id);
             if (parkingLot == null)
@@ -92,10 +95,21 @@ namespace api.Services
                 parkingLot.totalSpaces = (int)updateParkingLotInfoDto.totalSpaces;
             }
             normalDataBaseContext.SaveChanges();
-            return true;
+
+            return new ParkingLotReponseDto
+            {
+                lotID = parkingLot.lotID,
+                name = parkingLot.name,
+                address = parkingLot.address,
+                latitude = parkingLot.latitude,
+                longitude = parkingLot.longitude,
+                totalSpaces = parkingLot.totalSpaces,
+                availableSpaces = parkingLot.availableSpaces,
+                prices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.prices)
+            };
         }
 
-        public bool UpdateParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
+        public ParkingLotReponseDto UpdateParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
         {
 
             if (updateParkingLotPricesDto.Count() != 24)
@@ -130,7 +144,17 @@ namespace api.Services
             parkingLot.prices = JsonConvert.SerializeObject(updateParkingLotPricesDto);
             normalDataBaseContext.SaveChanges();
 
-            return true;
+            return new ParkingLotReponseDto
+            {
+                lotID = parkingLot.lotID,
+                name = parkingLot.name,
+                address = parkingLot.address,
+                latitude = parkingLot.latitude,
+                longitude = parkingLot.longitude,
+                totalSpaces = parkingLot.totalSpaces,
+                availableSpaces = parkingLot.availableSpaces,
+                prices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.prices)
+            };
         }
 
     }
