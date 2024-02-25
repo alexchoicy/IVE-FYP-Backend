@@ -144,6 +144,12 @@ builder.Services.AddAuthentication(options =>
     };
     options.Events = new JwtBearerEvents
     {
+        OnMessageReceived = context =>
+        {
+            context.Token = context.Request.Cookies["token"];
+            return Task.CompletedTask;
+        },
+
         OnChallenge = async context =>
         {
             string? ip = context.HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -171,7 +177,6 @@ app.UseSwagger();
 app.UseSwaggerUI();
 // }
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-
 
 app.UseHttpsRedirection();
 

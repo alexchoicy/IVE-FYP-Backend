@@ -126,7 +126,7 @@ namespace api.Controllers
         }
 
         [HttpPost("admin/login")]
-        public ActionResult<ApiResponse<AuthResponeDto>> AdminLogin([FromBody] LoginRequestDto loginRequestDto)
+        public ActionResult<ApiResponse<StaffReponseDto>> AdminLogin([FromBody] LoginRequestDto loginRequestDto)
         {
             try
             {
@@ -134,7 +134,14 @@ namespace api.Controllers
                 {
                     throw new RequestInvalidException("Request is invalid");
                 }
-                AuthResponeDto? data = authServices.AdminLogin(loginRequestDto);
+                (StaffReponseDto? data, string token) = authServices.AdminLogin(loginRequestDto);
+                Response.Cookies.Append("token", token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Secure = true
+                });
+
                 return Ok(data);
             }
             catch (UserNotFoundException ex)

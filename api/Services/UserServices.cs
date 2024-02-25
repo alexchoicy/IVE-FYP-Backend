@@ -105,7 +105,7 @@ namespace api.Services
                     isActive = user.isActive
                 };
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateException)
             {
                 throw new DataBaseUpdateException("Your Email or Phone number is already used by another user, please try another one");
             }

@@ -21,7 +21,7 @@ namespace api.Services
         AuthResponeDto? register(RegisterRequestDto registerRequestDto);
         bool resetPassword(ResetPasswordRequestDto resetPasswordRequestDto);
         bool resetPasswordVeify(ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto);
-        StaffAuthResponeDto? AdminLogin(LoginRequestDto loginRequestDto);
+        (StaffReponseDto?, string) AdminLogin(LoginRequestDto loginRequestDto);
     }
 
     public class AuthServices : IAuthServices
@@ -98,7 +98,7 @@ namespace api.Services
 
             AuthResponeDto response = new AuthResponeDto
             {
-                Token = jwtServices.CreateToken(user),
+                token = jwtServices.CreateToken(user),
                 userName = user.userName,
                 email = user.email ?? "",
                 firstName = user.firstName ?? "",
@@ -141,7 +141,7 @@ namespace api.Services
 
             AuthResponeDto response = new AuthResponeDto
             {
-                Token = jwtServices.CreateToken(newUser),
+                token = jwtServices.CreateToken(newUser),
                 userName = newUser.userName,
                 email = newUser.email ?? "",
                 firstName = newUser.firstName ?? "",
@@ -248,7 +248,7 @@ namespace api.Services
         }
 
 
-        public StaffAuthResponeDto AdminLogin(LoginRequestDto loginRequestDto)
+        public (StaffReponseDto, string) AdminLogin(LoginRequestDto loginRequestDto)
         {
             StaffUsers? user = staffDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.username);
 
@@ -257,14 +257,9 @@ namespace api.Services
                 throw new UserNotFoundException("The User does not exist");
             }
 
-            if (user.Password != loginRequestDto.password)
+            string token = jwtServices.CreateAdminToken(user);
+            StaffReponseDto response = new StaffReponseDto
             {
-                throw new InvalidCredentialsException("The password is incorrect");
-            }
-
-            StaffAuthResponeDto response = new StaffAuthResponeDto
-            {
-                Token = jwtServices.CreateAdminToken(user),
                 userName = user.userName,
                 email = user.Email ?? "",
                 firstName = user.FirstName ?? "",
@@ -272,7 +267,7 @@ namespace api.Services
                 phoneNumber = user.PhoneNumber ?? "",
                 carParkID = user.CarParkID
             };
-            return response;
+            return (response, token);
         }
     }
 }
