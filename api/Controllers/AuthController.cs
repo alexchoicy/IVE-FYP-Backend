@@ -166,5 +166,12 @@ namespace api.Controllers
             }
 
         }
+
+        [HttpPost("logout")]
+        public ActionResult<ApiResponse<string>> AdminLogout()
+        {
+            Response.Cookies.Delete("token");
+            return Ok("Logout success");
+        }
     }
 }
