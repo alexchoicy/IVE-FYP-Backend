@@ -260,7 +260,6 @@ namespace api.Services
             string token = jwtServices.CreateAdminToken(user);
             StaffReponseDto response = new StaffReponseDto
             {
-                token = token,
                 userName = user.userName,
                 email = user.Email ?? "",
                 firstName = user.FirstName ?? "",

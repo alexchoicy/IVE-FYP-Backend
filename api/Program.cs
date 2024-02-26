@@ -35,13 +35,21 @@ builder.Services.AddApiVersioning();
 
 builder.Services.AddCors(options =>
 {
+    // options.AddPolicy(
+    //     "AllowAll",
+    //     builder => builder
+    //         .AllowAnyOrigin()
+    //         .AllowAnyMethod()
+    //         .AllowAnyHeader()
+    //         .AllowCredentials()
+    // );
     options.AddPolicy(
-        "AllowAll",
-        builder => builder
-            .AllowAnyOrigin()
+        "AdminOrigin",
+        corsbuilder => corsbuilder
+            .WithOrigins(builder.Configuration.GetSection("Cors:AdminOrigin").Get<string[]>())
             .AllowAnyMethod()
             .AllowAnyHeader()
-    // .AllowCredentials()
+            .AllowCredentials()
     );
 });
 
@@ -183,6 +191,7 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
-app.UseCors("AllowAll");
+// app.UseCors("AllowAll");
+app.UseCors("AdminUIOrigin");
 
 app.Run();
