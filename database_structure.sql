@@ -92,6 +92,7 @@ CREATE TABLE `Reservations` (
     `VehicleID` int NOT NULL,
     `LotID` int NOT NULL,
     `StartTime` timestamp NOT NULL,
+    `EndTime` timestamp NOT NULL,
     `Price` decimal(10, 2) NOT NULL,
     `SpaceType` tinyint NOT NULL,
     `ReservationsStatus` tinyint NOT NULL,

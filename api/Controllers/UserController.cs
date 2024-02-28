@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
+    [Authorize(Policy = "access-token")]
     [ApiVersion("1.0")]
     [ApiController]
     [Route("api/v{version:apiVersion}")]
@@ -25,7 +26,6 @@ namespace api.Controllers
         }
 
         [HttpGet("me")]
-        [Authorize]
         public IActionResult GetUserInfo()
         {
             try
@@ -61,7 +61,6 @@ namespace api.Controllers
         }
 
         [HttpGet("users/{userid}")]
-        [Authorize]
         public IActionResult GetUserInfo(string userid)
         {
             try
@@ -93,7 +92,6 @@ namespace api.Controllers
         }
 
         [HttpPatch("users/{userid}")]
-        [Authorize]
         public IActionResult UpdateUserInfo(string userid, [FromBody] UserUpdateRequestDto userUpdateRequestDto)
         {
             try

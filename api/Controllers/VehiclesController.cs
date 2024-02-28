@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "access-token")]
     [ApiVersion("1.0")]
     [ApiController]
     [Route("api/v{version:apiVersion}/users/{userId}/vehicles")]
@@ -18,7 +19,18 @@ namespace api.Controllers
         [HttpGet]
         public IActionResult GetVehicles(int userId)
         {
-            return Ok(userId);
+            try
+            {
+                return Ok(userId);
+            }
+            catch (UserNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+            catch (TokenInvalidException ex)
+            {
+                return Unauthorized(ex);
+            }
         }
 
         [HttpPost]

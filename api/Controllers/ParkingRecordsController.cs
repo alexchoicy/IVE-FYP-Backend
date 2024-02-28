@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace api.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "access-token")]
     [ApiVersion("1.0")]
     [ApiController]
     [Route("api/v{version:apiVersion}/parkingrecords")]

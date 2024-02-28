@@ -5,6 +5,8 @@ using api.Models;
 using api.Services;
 using api.utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -173,9 +175,17 @@ builder.Services.AddAuthentication(options =>
                 ErrorMessage = "You are not Authorized",
                 Success = false
             });
-        }
+        },
     };
 });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("access-token", policy => policy.RequireClaim("type", "access-token"));
+    options.AddPolicy("password-reset", policy => policy.RequireClaim("type", "password-reset"));
+});
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, CustomAuthorizationMiddlewareResultHandler>();
+
 
 var app = builder.Build();
 
