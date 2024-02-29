@@ -32,5 +32,6 @@ services:
     #   - ASPNETCORE_ENVIRONMENT=Production
     volumes:
       - ${APPSETTINGS}:/app/appsettings.json:ro
+      - ${APPLOGS}:/app/Logs
 volumes:
   mysql_data:
