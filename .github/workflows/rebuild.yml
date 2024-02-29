@@ -1,18 +1,20 @@
 name: rebuild
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
 jobs:
-  build:
-    runs-on: [self-hosted]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          clean: false
-      - name: Rebuild
-        run: |
-          docker compose stop
-          docker compose up -d --build --remove-orphans
+    build:
+        runs-on: [self-hosted]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+              with:
+                  clean: false
+            - name: copy .env file
+              run: cp ${{secrets.BACKEND_ENV_PATH}} .env
+            - name: Rebuild
+              run: |
+                  docker compose stop
+                  docker compose up -d --build --remove-orphans
