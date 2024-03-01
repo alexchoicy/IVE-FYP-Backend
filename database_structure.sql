@@ -26,7 +26,7 @@ CREATE TABLE `UserVehicles` (
     `IsDisabled` boolean NOT NULL DEFAULT '0',
     `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (`VehicleID`),
+    PRIMARY KEY (`VehicleID`),/
     FOREIGN KEY (`UserID`) REFERENCES `Users`(`UserID`)
 );
 
@@ -64,7 +64,7 @@ CREATE TABLE `ParkingSpaces` (
     `PlanEnabled` boolean NOT NULL DEFAULT '0',
 
     PRIMARY KEY (`SpaceID`),
-    FOREIGN KEY (`LotID`) REFERENCES `ParkingLots`(`LotID`)
+    FOREIGN KEY (`LotID`) REFERENCES `ParkingLots`(`LotID`),
     FOREIGN KEY (`CurrentPlanID`) REFERENCES `ParkingPlans`(`PlanID`)
 );
 
