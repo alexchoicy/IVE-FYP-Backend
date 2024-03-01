@@ -12,18 +12,19 @@ namespace api.Models.Entity.NormalDB
     {
         [Key]
         public required int reservationID { get; set; }
-        [ForeignKey("UserVechicles")]
-        public required int vechicleID { get; set; }
+        [ForeignKey("Uservehicles")]
+        public required int vehicleID { get; set; }
         [ForeignKey("ParkingLots")]
         public required int lotID { get; set; }
         public required DateTime startTime { get; set; }
-        public DateTime? cancelTime { get; set; }
+        public required DateTime endTime { get; set; }
         public double price { get; set; }
         public required SpaceType spaceType { get; set; }
         public required ReservationStatus reservationStatus { get; set; }
         public required DateTime CreateAt { get; set; }
+        public DateTime? cancelTime { get; set; }
         //references
-        public required UserVechicles vechicle { get; set; }
+        public required UserVehicles vehicle { get; set; }
         public required ParkingLots lot { get; set; }
     }
 }

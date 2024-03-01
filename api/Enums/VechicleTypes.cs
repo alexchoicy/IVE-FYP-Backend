@@ -1,6 +1,6 @@
 namespace api.Enums
 {
-    public enum VechicleTypes
+    public enum VehicleTypes
     {
         REGULAR = 1,
         ELECTRIC = 2,

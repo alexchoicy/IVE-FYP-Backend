@@ -21,8 +21,8 @@ CREATE TABLE `Users` (
 CREATE TABLE `UserVehicles` (
     `VehicleID` int NOT NULL AUTO_INCREMENT,
     `UserID` int NOT NULL,
-    `VechicleLicense` varchar(50) NOT NULL,
-    `VechicleType` tinyint NOT NULL,
+    `vehicleLicense` varchar(50) NOT NULL,
+    `vehicleType` tinyint NOT NULL,
     `IsDisabled` boolean NOT NULL DEFAULT '0',
     `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -118,7 +118,7 @@ CREATE TABLE `ParkingRecords` (
     `EntryTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `ExitTime` timestamp,
     `ReservationID` int DEFAULT NULL,
-    `VechicleLicense` varchar(50) NOT NULL,
+    `vehicleLicense` varchar(50) NOT NULL,
 
     PRIMARY KEY (`ParkingRecordID`),
     FOREIGN KEY (`LotID`) REFERENCES `ParkingLots`(`LotID`),

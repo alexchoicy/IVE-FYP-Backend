@@ -19,7 +19,7 @@ namespace api.Models.Entity.NormalDB
         public DateTime? exitTime { get; set; }
         [ForeignKey("Reservations")]
         public int? reservationID { get; set; }
-        public required string vechicleLicense { get; set; }
+        public required string vehicleLicense { get; set; }
 
         //references
         public Reservations? reservation { get; set; }

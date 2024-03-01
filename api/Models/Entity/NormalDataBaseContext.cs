@@ -12,6 +12,7 @@ namespace api.Models
         public NormalDataBaseContext(DbContextOptions<NormalDataBaseContext> dbContextOptions) : base(dbContextOptions) { }
 
         public DbSet<Users> Users { get; set; }
+        public DbSet<UserVehicles> UserVehicles { get; set; }
         public DbSet<ParkingLots> ParkingLots { get; set; }
     }
 }
