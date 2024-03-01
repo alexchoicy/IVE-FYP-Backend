@@ -10,7 +10,7 @@ namespace api.Models.Respone
     {
         public int vehicleID { get; set; }
         public required string vehicleLicense { get; set; }
-        public required vehicleTypes vehicleType { get; set; }
+        public required VehicleTypes vehicleType { get; set; }
         public bool isDisabled { get; set; }
     }
 }
