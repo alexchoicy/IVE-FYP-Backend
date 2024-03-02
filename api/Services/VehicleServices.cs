@@ -17,7 +17,7 @@ namespace api.Services
         VehicleResponseDto getVehicle(int vehicleID, int userID);
         bool addVehicle(int userID, VehicleRequestDto vehicleRequestDto);
     }
-    public class VehicleServices
+    public class VehicleServices : IVehicleServices
     {
         private readonly NormalDataBaseContext normalDataBaseContext;
 

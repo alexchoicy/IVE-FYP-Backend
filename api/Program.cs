@@ -125,6 +125,7 @@ builder.Services.AddScoped<HashServices>();
 builder.Services.AddScoped<IAuthServices, AuthServices>();
 builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddScoped<IParkingLotServices, ParkingLotServices>();
+builder.Services.AddScoped<IVehicleServices, VehicleServices>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -195,7 +196,15 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 // }
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
+}
 
 app.UseHttpsRedirection();
 
