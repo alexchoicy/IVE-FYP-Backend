@@ -116,6 +116,8 @@ namespace api.Services
             return reservation;
         }
 
+
+        //TODO add price and payment
         public bool createReservation(int userID, CreateReservationRequestDto createReservationRequestDto)
         {
             UserVehicles? uservehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(uv => uv.vehicleID == createReservationRequestDto.vehicleID && uv.userID == userID);
