@@ -37,14 +37,14 @@ namespace api.Controllers
                 {
                     throw new TokenInvalidException("You are unauthorized");
                 }
-                string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
-                if (userid == "")
+                string tokenUserid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+                if (tokenUserid == "")
                 {
                     throw new TokenInvalidException("The Token is invalid");
                 }
-                if (userId.ToString() != userid || !httpContextAccessor.HttpContext.User.IsInRole("admin"))
+                if (userId.ToString() != tokenUserid || httpContextAccessor.HttpContext.User.IsInRole("admin"))
                 {
-                    throw new TokenInvalidException("You are unauthorized");
+                    throw new TokenInvalidException("You are unauthorized, you can only access your own vehicles");
                 }
                 IEnumerable<VehicleResponseDto> vehicles = vehicleServices.getVehicles(userId);
                 return Ok(vehicles);
@@ -68,17 +68,17 @@ namespace api.Controllers
                 {
                     throw new TokenInvalidException("You are unauthorized");
                 }
-                string userid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
-                if (userid == "")
+                string tokenUserid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+                if (tokenUserid == "")
                 {
                     throw new TokenInvalidException("The Token is invalid");
                 }
-                if (userId.ToString() != userid || !httpContextAccessor.HttpContext.User.IsInRole("admin"))
+                if (userId.ToString() != tokenUserid || httpContextAccessor.HttpContext.User.IsInRole("admin"))
                 {
-                    throw new TokenInvalidException("You are unauthorized");
+                    throw new TokenInvalidException("You are unauthorized, you can only access your own vehicles");
                 }
                 bool result = vehicleServices.addVehicle(userId, vehicleRequestDto);
-                return Created("", result);
+                return Created("", "Vehicle added successfully");
             }
             catch (UserNotFoundException ex)
             {
@@ -91,6 +91,14 @@ namespace api.Controllers
             catch (vehicleAlreadyExistsException ex)
             {
                 return Conflict(ex);
+            }
+            catch (InvalidVehicleTypeException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (InvalidVehicleLicenseException ex)
+            {
+                return BadRequest(ex);
             }
         }
 

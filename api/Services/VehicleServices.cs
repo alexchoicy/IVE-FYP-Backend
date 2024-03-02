@@ -67,11 +67,19 @@ namespace api.Services
         public bool addVehicle(int userID, VehicleRequestDto vehicleRequestDto)
         {
             string vehicleLicense = vehicleRequestDto.vehicleLicense.ToUpper();
+            if (vehicleLicense == "")
+            {
+                throw new InvalidVehicleLicenseException("Vehicle license cannot be empty");
+            }
             UserVehicles? checkVehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(uv => uv.vehicleLicense == vehicleLicense);
-
-            if (checkVehicle != null && checkVehicle.isDisabled)
+            if (checkVehicle != null && !checkVehicle.isDisabled)
             {
                 throw new vehicleAlreadyExistsException("Vehicle already exists");
+            }
+
+            if (!Enum.IsDefined(typeof(VehicleTypes), vehicleRequestDto.vehicleType))
+            {
+                throw new InvalidVehicleTypeException("Invalid vehicle type, 1 for Regular, 2 for Electric");
             }
 
             UserVehicles uservehicle = new UserVehicles

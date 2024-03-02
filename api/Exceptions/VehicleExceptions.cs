@@ -18,4 +18,18 @@ namespace api.Exceptions
         {
         }
     }
+
+    public class InvalidVehicleTypeException : BaseCustomExceptions
+    {
+        public InvalidVehicleTypeException(string message) : base(message)
+        {
+        }
+    }
+
+    public class InvalidVehicleLicenseException : BaseCustomExceptions
+    {
+        public InvalidVehicleLicenseException(string message) : base(message)
+        {
+        }
+    }
 }
