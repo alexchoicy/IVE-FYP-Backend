@@ -19,7 +19,9 @@ namespace api.Models.Entity.NormalDB
         public required DateTime startTime { get; set; }
         public required DateTime endTime { get; set; }
         public double price { get; set; }
+        [Column(TypeName = "varchar")]
         public required SpaceType spaceType { get; set; }
+        [Column(TypeName = "varchar")]
         public required ReservationStatus reservationStatus { get; set; }
         public required DateTime CreateAt { get; set; }
         public DateTime? cancelTime { get; set; }

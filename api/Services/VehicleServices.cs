@@ -77,22 +77,27 @@ namespace api.Services
                 throw new vehicleAlreadyExistsException("Vehicle already exists");
             }
 
-            if (!Enum.IsDefined(typeof(VehicleTypes), vehicleRequestDto.vehicleType))
+            bool success = Enum.TryParse(vehicleRequestDto.vehicleType.ToString(), out VehicleTypes vehicleType);
+
+            if (success)
             {
-                throw new InvalidVehicleTypeException("Invalid vehicle type, 1 for Regular, 2 for Electric");
+                UserVehicles uservehicle = new UserVehicles
+                {
+                    userID = userID,
+                    vehicleLicense = vehicleRequestDto.vehicleLicense,
+                    vehicleType = vehicleType,
+                    isDisabled = false,
+                    createdAt = DateTime.Now
+                };
+
+                normalDataBaseContext.UserVehicles.Add(uservehicle);
+                normalDataBaseContext.SaveChanges();
             }
-
-            UserVehicles uservehicle = new UserVehicles
+            else
             {
-                userID = userID,
-                vehicleLicense = vehicleRequestDto.vehicleLicense,
-                vehicleType = (VehicleTypes)vehicleRequestDto.vehicleType,
-                isDisabled = false,
-                createdAt = DateTime.Now
-            };
+                throw new InvalidVehicleTypeException("Invalid vehicle type, must be REGULAR or ELECTRIC");
 
-            normalDataBaseContext.UserVehicles.Add(uservehicle);
-            normalDataBaseContext.SaveChanges();
+            }
             return true;
         }
 

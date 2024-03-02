@@ -23,6 +23,5 @@ namespace api.Models.Entity.NormalDB
 
         //references
         public Reservations? reservation { get; set; }
-        public required Payments payment { get; set; }
     }
 }

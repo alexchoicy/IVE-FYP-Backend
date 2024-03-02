@@ -2,14 +2,14 @@ namespace api.Enums
 {
     public enum SpaceStatus
     {
-        UNVAILABLE = 0,
-        AVAILABLE = 1,
-        OCCUPIED = 2,
+        UNVAILABLE,
+        AVAILABLE,
+        OCCUPIED,
     }
 
     public enum SpaceType
     {
-        REGULAR = 0,
-        ELECTRIC = 1,
+        REGULAR,
+        ELECTRIC,
     }
 }

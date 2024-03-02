@@ -22,11 +22,11 @@ CREATE TABLE `UserVehicles` (
     `VehicleID` int NOT NULL AUTO_INCREMENT,
     `UserID` int NOT NULL,
     `vehicleLicense` varchar(50) NOT NULL,
-    `vehicleType` tinyint NOT NULL,
+    `vehicleType` varchar(50) NOT NULL,
     `IsDisabled` boolean NOT NULL DEFAULT '0',
     `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (`VehicleID`),/
+    PRIMARY KEY (`VehicleID`),
     FOREIGN KEY (`UserID`) REFERENCES `Users`(`UserID`)
 );
 
@@ -46,7 +46,7 @@ CREATE TABLE `ParkingLots` (
 CREATE TABLE `ParkingPlans` (
     `PlanID` int NOT NULL AUTO_INCREMENT,
     `Name` varchar(50) NOT NULL,
-    `PlanType` tinyint NOT NULL,
+    `PlanType` varchar(50) NOT NULL,
     `Description` varchar(255) NOT NULL,
     `Price` decimal(10, 2) NOT NULL,
     `DurationMonths` int NOT NULL,
@@ -58,8 +58,8 @@ CREATE TABLE `ParkingSpaces` (
     `LotID` int NOT NULL,
     `FloorLevel` int NOT NULL,
     `SpaceNumber` int NOT NULL,
-    `SpaceStatus` tinyint NOT NULL,
-    `SpaceType` tinyint NOT NULL,
+    `SpaceStatus` varchar(50) NOT NULL,
+    `SpaceType` varchar(50) NOT NULL,
     `CurrentPlanID` int DEFAULT NULL,
     `PlanEnabled` boolean NOT NULL DEFAULT '0',
 
@@ -73,7 +73,7 @@ CREATE TABLE `ParkingSpacePlans` (
     `SpaceID` int NOT NULL,
     `PlanID` int NOT NULL,
     `UserID` int NOT NULL,
-    `ParkingSpacePlanStatus` tinyint NOT NULL,
+    `ParkingSpacePlanStatus` varchar(50) NOT NULL,
     `StartTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `EndTime` timestamp,
     
@@ -94,8 +94,8 @@ CREATE TABLE `Reservations` (
     `StartTime` timestamp NOT NULL,
     `EndTime` timestamp NOT NULL,
     `Price` decimal(10, 2) NOT NULL,
-    `SpaceType` tinyint NOT NULL,
-    `ReservationsStatus` tinyint NOT NULL,
+    `SpaceType` varchar(50) NOT NULL,
+    `ReservationsStatus` varchar(50) NOT NULL,
     `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `CanceledAt` timestamp,
     PRIMARY KEY (`ReservationID`),

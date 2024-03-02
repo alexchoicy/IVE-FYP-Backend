@@ -15,6 +15,7 @@ namespace api.Models.Entity.NormalDB
         [ForeignKey("Users")]
         public required int userID { get; set; }
         public required string vehicleLicense { get; set; }
+        [Column(TypeName = "varchar")]
         public VehicleTypes vehicleType { get; set; }
         public required bool isDisabled { get; set; }
         public required DateTime createdAt { get; set; }

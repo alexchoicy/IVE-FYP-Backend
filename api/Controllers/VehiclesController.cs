@@ -64,6 +64,10 @@ namespace api.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    throw new RequestInvalidException("Invalid vehicle license");
+                }
                 if (httpContextAccessor.HttpContext?.User == null)
                 {
                     throw new TokenInvalidException("You are unauthorized");
@@ -97,6 +101,10 @@ namespace api.Controllers
                 return BadRequest(ex);
             }
             catch (InvalidVehicleLicenseException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (RequestInvalidException ex)
             {
                 return BadRequest(ex);
             }

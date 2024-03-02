@@ -18,6 +18,7 @@ namespace api.Models.Entity.NormalDB
         public required int planID { get; set; }
         [ForeignKey("Users")]
         public required int userID { get; set; }
+        [Column(TypeName = "varchar")]
         public required ParkingSpacePlanStatus parkingSpacePlanStatus { get; set; }
         public required DateTime startTime { get; set; }
         public DateTime? endTime { get; set; } //null meaning purchased

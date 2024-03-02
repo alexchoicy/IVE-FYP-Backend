@@ -16,7 +16,9 @@ namespace api.Models.Entity.NormalDB
         public required int lotID { get; set; }
         public required int floorLevel { get; set; }
         public required int spaceNumber { get; set; }
+        [Column(TypeName = "varchar")]
         public required SpaceStatus spaceStatus { get; set; }
+        [Column(TypeName = "varchar")]
         public required SpaceType spaceType { get; set; }
         [ForeignKey("ParkingSpacePlans")]
         public int? currentPlanID { get; set; }
