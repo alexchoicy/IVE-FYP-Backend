@@ -11,7 +11,7 @@ namespace api.Models.Entity.NormalDB
     public class Reservations
     {
         [Key]
-        public required int reservationID { get; set; }
+        public int reservationID { get; set; }
         [ForeignKey("Uservehicles")]
         public required int vehicleID { get; set; }
         [ForeignKey("ParkingLots")]
@@ -23,10 +23,10 @@ namespace api.Models.Entity.NormalDB
         public required SpaceType spaceType { get; set; }
         [Column(TypeName = "varchar")]
         public required ReservationStatus reservationStatus { get; set; }
-        public required DateTime CreateAt { get; set; }
-        public DateTime? cancelTime { get; set; }
+        public required DateTime createdAt { get; set; }
+        public DateTime? canceledAt { get; set; }
         //references
-        public required UserVehicles vehicle { get; set; }
-        public required ParkingLots lot { get; set; }
+        public virtual UserVehicles vehicle { get; set; }
+        public virtual ParkingLots lot { get; set; }
     }
 }

@@ -37,7 +37,8 @@ CREATE TABLE `ParkingLots` (
     `Latitude` decimal(10, 8) NOT NULL,
     `Longitude` decimal(11, 8) NOT NULL,
     `TotalSpaces` int NOT NULL,
-    `PlanSpaces` int NOT NULL DEFAULT '0',
+    `RegularPlanSpaces` int NOT NULL DEFAULT '0',
+    `ElectricPlanSpaces` int NOT NULL DEFAULT '0',
     `RegularSpaces` int NOT NULL DEFAULT '0',
     `ElectricSpaces` int NOT NULL DEFAULT '0',
     `ReservableOnlySpaces` int NOT NULL,
@@ -50,7 +51,7 @@ CREATE TABLE `ParkingLots` (
     PRIMARY KEY (`LotID`)
 );
 
-CREATE TABLE `HourlyAvailableCount` (
+CREATE TABLE `HourlyAvailableSpaces` (
     `RecordID` int NOT NULL AUTO_INCREMENT,
     `LotID` int NOT NULL,
     `DateTime` timestamp NOT NULL,
@@ -113,7 +114,7 @@ CREATE TABLE `Reservations` (
     `EndTime` timestamp NOT NULL,
     `Price` decimal(10, 2) NOT NULL,
     `SpaceType` varchar(50) NOT NULL,
-    `ReservationsStatus` varchar(50) NOT NULL,
+    `ReservationStatus` varchar(50) NOT NULL,
     `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `CanceledAt` timestamp,
     PRIMARY KEY (`ReservationID`),

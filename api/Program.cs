@@ -37,14 +37,6 @@ builder.Services.AddApiVersioning();
 
 builder.Services.AddCors(options =>
 {
-    // options.AddPolicy(
-    //     "AllowAll",
-    //     builder => builder
-    //         .AllowAnyOrigin()
-    //         .AllowAnyMethod()
-    //         .AllowAnyHeader()
-    //         .AllowCredentials()
-    // );
     options.AddPolicy(
         "AdminOrigin",
         corsbuilder => corsbuilder
@@ -126,6 +118,8 @@ builder.Services.AddScoped<IAuthServices, AuthServices>();
 builder.Services.AddScoped<IUserServices, UserServices>();
 builder.Services.AddScoped<IParkingLotServices, ParkingLotServices>();
 builder.Services.AddScoped<IVehicleServices, VehicleServices>();
+builder.Services.AddScoped<IReservationServices, ReservationServices>();
+
 
 builder.Services.AddAuthentication(options =>
 {
@@ -210,7 +204,6 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
-// app.UseCors("AllowAll");
 app.UseCors("AdminUIOrigin");
 
 app.Run();

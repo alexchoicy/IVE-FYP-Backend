@@ -2,6 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Exceptions;
+using api.Models.Request;
+using api.Models.Respone;
+using api.Services;
+using api.utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,23 +18,134 @@ namespace api.Controllers
     [Route("api/v{version:apiVersion}/reservations")]
     public class ReservationsController : ControllerBase
     {
+        private readonly IReservationServices reservationServices;
+        private readonly IHttpContextAccessor httpContextAccessor;
+
+        public ReservationsController(IReservationServices reservationServices, IHttpContextAccessor httpContextAccessor)
+        {
+            this.reservationServices = reservationServices;
+            this.httpContextAccessor = httpContextAccessor;
+        }
+
 
         [HttpGet]
-        public IActionResult GetReservations(int? parkingLotId, int? userId)
+        public IActionResult GetReservations(int? parkingLotId, int? userId, int? vehicleId)
         {
-            return Ok();
+            try
+            {
+                if (httpContextAccessor.HttpContext?.User == null)
+                {
+                    throw new TokenInvalidException("You are unauthorized");
+                }
+                string tokenUserId = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+                if (tokenUserId == "")
+                {
+                    throw new TokenInvalidException("The Token is invalid");
+                }
+
+                if (userId == null || !httpContextAccessor.HttpContext.User.IsInRole("admin"))
+                {
+                    userId = int.Parse(tokenUserId);
+                }
+
+                IEnumerable<ReservationReponseDto> reservations;
+                if (userId != null)
+                {
+                    reservations = reservationServices.getReservationsByUserID(userId.Value);
+                }
+                else if (parkingLotId != null)
+                {
+                    reservations = reservationServices.getReservationsByLotID(parkingLotId.Value);
+                }
+
+                else if (vehicleId != null)
+                {
+                    reservations = reservationServices.getReservationsByVehicleID(vehicleId.Value);
+                }
+
+                else
+                {
+                    throw new ArgumentException("At least one parameter must be provided");
+                }
+                return Ok(reservations);
+            }
+            catch (TokenInvalidException ex)
+            {
+                return Unauthorized(ex);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex);
+            }
         }
 
         [HttpPost]
-        public IActionResult CreateReservation()
+        public IActionResult CreateReservation([FromBody] CreateReservationRequestDto createReservationRequestDto)
         {
-            return Ok();
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    throw new RequestInvalidException("Invalid request model");
+                }
+                if (httpContextAccessor.HttpContext?.User == null)
+                {
+                    throw new TokenInvalidException("You are unauthorized");
+                }
+                string tokenUserid = httpContextAccessor.HttpContext.User.getUserID() ?? "";
+                if (tokenUserid == "")
+                {
+                    throw new TokenInvalidException("The Token is invalid");
+                }
+                bool success = reservationServices.createReservation(int.Parse(tokenUserid), createReservationRequestDto);
+                return Ok(success);
+            }
+            catch (TokenInvalidException ex)
+            {
+                return Unauthorized(ex);
+            }
+            catch (RequestInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (vehicleNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+            catch (ParkingLotNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+            catch (InvalidReservationTimeException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (InvalidSpaceTypeException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (NoAvailableSpacesException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (ReservationLimitExceededException ex)
+            {
+                return BadRequest(ex);
+            }
         }
 
         [HttpGet("{reservationId}")]
         public IActionResult GetReservation(int reservationId)
         {
-            return Ok(reservationId);
+            try
+            {
+                ReservationReponseDto reservation = reservationServices.getReservationByID(reservationId);
+                return Ok(reservation);
+            }
+            catch (ReservationNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
         }
 
         [HttpPatch("{reservationId}")]
