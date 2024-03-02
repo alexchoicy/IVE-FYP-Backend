@@ -11,7 +11,6 @@ namespace api.Models.Request
         public string? address { get; set; }
         public double? latitude { get; set; }
         public double? longitude { get; set; }
-        public int? totalSpaces { get; set; }
     }
 
     public class UpdateParkingLotPricesDto

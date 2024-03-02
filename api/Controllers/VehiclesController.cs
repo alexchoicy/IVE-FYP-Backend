@@ -66,7 +66,7 @@ namespace api.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    throw new RequestInvalidException("Invalid vehicle license");
+                    throw new RequestInvalidException("Invalid Request Model");
                 }
                 if (httpContextAccessor.HttpContext?.User == null)
                 {

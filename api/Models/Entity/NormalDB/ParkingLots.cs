@@ -11,8 +11,16 @@ namespace api.Models.Entity.NormalDB
         public required string address { get; set; }
         public required double latitude { get; set; }
         public required double longitude { get; set; }
-        public required int totalSpaces { get; set; }
-        public required int availableSpaces { get; set; }
+        public int totalSpaces { get; set; }
+        public int regularSpaces { get; set; }
+        public int electricSpaces { get; set; }
+        public int regularPlanSpaces { get; set; }
+        public int electricPlanSpaces { get; set; }
+        public decimal walkinReservedRatio { get; set; }
+        public int reservableOnlySpaces { get; set; }
+        public decimal reservedDiscount { get; set; }
+        public int minReservationWindowHours { get; set; }
+        public int maxReservationHours { get; set; }
         public required string prices { get; set; }
     }
     //the lots will store the prices as a string in the format of a json array
