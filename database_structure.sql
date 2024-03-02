@@ -13,7 +13,7 @@ CREATE TABLE `Users` (
   `LoginAttempts` int NOT NULL DEFAULT '0',
   `LockUntil` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`UserID`),
-  UNIQUE KEY `UserName` (`UserName`),
+  UNIQUE KEY `UserName` (`Username`),
   UNIQUE KEY `PhoneNumber` (`PhoneNumber`),
   UNIQUE KEY `Email` (`Email`)
 );
@@ -37,10 +37,28 @@ CREATE TABLE `ParkingLots` (
     `Latitude` decimal(10, 8) NOT NULL,
     `Longitude` decimal(11, 8) NOT NULL,
     `TotalSpaces` int NOT NULL,
-    `AvailableSpaces` int NOT NULL,
+    `PlanSpaces` int NOT NULL DEFAULT '0',
+    `RegularSpaces` int NOT NULL DEFAULT '0',
+    `ElectricSpaces` int NOT NULL DEFAULT '0',
+    `ReservableOnlySpaces` int NOT NULL,
+    `WalkinReservedRatio` decimal(10, 2) NOT NULL,
+    `ReservedDiscount` decimal(10, 2) NOT NULL,
+    `MinReservationWindowHours` int NOT NULL,
+    `MaxReservationHours` int NOT NULL,
     `Prices` json NOT NULL,
 
     PRIMARY KEY (`LotID`)
+);
+
+CREATE TABLE `HourlyAvailableCount` (
+    `RecordID` int NOT NULL AUTO_INCREMENT,
+    `LotID` int NOT NULL,
+    `DateTime` timestamp NOT NULL,
+    `RegularSpaceCount` int NOT NULL,
+    `ElectricSpaceCount` int NOT NULL,
+
+    PRIMARY KEY (`RecordID`),
+    FOREIGN KEY (`LotID`) REFERENCES `ParkingLots`(`LotID`)
 );
 
 CREATE TABLE `ParkingPlans` (
