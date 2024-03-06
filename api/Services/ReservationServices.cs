@@ -23,9 +23,11 @@ namespace api.Services
     {
         private readonly NormalDataBaseContext normalDataBaseContext;
 
-        public ReservationServices(NormalDataBaseContext normalDataBaseContext)
+        private readonly IHourlyAvaiableSpaceServices hourlyAvaiableSpaceServices;
+        public ReservationServices(NormalDataBaseContext normalDataBaseContext, IHourlyAvaiableSpaceServices hourlyAvaiableSpaceServices)
         {
             this.normalDataBaseContext = normalDataBaseContext;
+            this.hourlyAvaiableSpaceServices = hourlyAvaiableSpaceServices;
         }
 
         public IEnumerable<ReservationReponseDto> getReservationsByUserID(int userID)
@@ -191,13 +193,7 @@ namespace api.Services
                 }
                 else
                 {
-                    HourlyAvailableSpaces newHourlyAvailableSpaces = new HourlyAvailableSpaces
-                    {
-                        lotID = createReservationRequestDto.lotID,
-                        dateTime = hour,
-                        regularSpaceCount = parkingLot.regularSpaces - parkingLot.regularPlanSpaces,
-                        electricSpaceCount = parkingLot.electricSpaces - parkingLot.electricPlanSpaces,
-                    };
+                    HourlyAvailableSpaces newHourlyAvailableSpaces = hourlyAvaiableSpaceServices.CreateHourlyAvaiableSpace(parkingLot, hour);
                     switch (spaceType)
                     {
                         case Enums.SpaceType.REGULAR:
