@@ -21,7 +21,8 @@ namespace api.Models.Entity.NormalDB
         public decimal reservedDiscount { get; set; }
         public int minReservationWindowHours { get; set; }
         public int maxReservationHours { get; set; }
-        public required string prices { get; set; }
+        public required string regularSpacePrices { get; set; }
+        public required string electricSpacePrices { get; set; }
     }
     //the lots will store the prices as a string in the format of a json array
     public class LotPrices

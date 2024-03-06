@@ -60,6 +60,18 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 
+builder.Services.AddDbContextFactory<NormalDataBaseContext>(options =>
+{
+    string? NormalDataBaseConnectionString = builder.Configuration.GetConnectionString("NormalDataBaseConnection");
+    options.UseMySql(NormalDataBaseConnectionString, ServerVersion.AutoDetect(NormalDataBaseConnectionString));
+
+});
+
+builder.Services.AddDbContextFactory<StaffDataBaseContext>(options =>
+{
+    string? StaffDataBaseConnectionString = builder.Configuration.GetConnectionString("StaffDataBaseConnection");
+    options.UseMySql(StaffDataBaseConnectionString, ServerVersion.AutoDetect(StaffDataBaseConnectionString));
+});
 
 // Add MQTT services
 builder.Services.AddSingleton<MqttClientservices>();
@@ -96,23 +108,15 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
-builder.Services.AddDbContext<NormalDataBaseContext>(options =>
-{
-    string? NormalDataBaseConnectionString = builder.Configuration.GetConnectionString("NormalDataBaseConnection");
-    options.UseMySql(NormalDataBaseConnectionString, ServerVersion.AutoDetect(NormalDataBaseConnectionString));
-
-});
-
-builder.Services.AddDbContext<StaffDataBaseContext>(options =>
-{
-    string? StaffDataBaseConnectionString = builder.Configuration.GetConnectionString("StaffDataBaseConnection");
-    options.UseMySql(StaffDataBaseConnectionString, ServerVersion.AutoDetect(StaffDataBaseConnectionString));
-});
 
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<JWTServices>();
 builder.Services.AddScoped<HashServices>();
+
+// builder.Services.AddSingleton<ILprDataService, LprDataService>();
+// builder.Services.AddScoped<ILprDataService, LprDataService>();
+builder.Services.AddSingleton<IHourlyAvaiableSpaceServices, HourlyAvaiableSpaceServices>();
 
 builder.Services.AddScoped<IAuthServices, AuthServices>();
 builder.Services.AddScoped<IUserServices, UserServices>();

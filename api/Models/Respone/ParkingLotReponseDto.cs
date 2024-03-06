@@ -22,6 +22,7 @@ namespace api.Models.Respone
 
         public int availableRegularSpaces { get; set; }
         public int availableElectricSpaces { get; set; }
-        public IEnumerable<LotPrices>? prices { get; set; }
+        public IEnumerable<LotPrices>? regularSpacePrices { get; set; }
+        public IEnumerable<LotPrices>? electricSpacePrices { get; set; }
     }
 }

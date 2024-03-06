@@ -15,7 +15,8 @@ namespace api.Services
         IEnumerable<ParkingLotReponseDto>? GetParkingLots();
         ParkingLotReponseDto? GetParkingLot(int id);
         ParkingLotReponseDto UpdateParkingLotInfo(int id, UpdateParkingLotInfoDto updateParkingLotInfoDto);
-        ParkingLotReponseDto UpdateParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto);
+        ParkingLotReponseDto UpdateRegularParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto);
+        ParkingLotReponseDto UpdateElectricParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto);
     }
 
     public class ParkingLotServices : IParkingLotServices
@@ -55,7 +56,8 @@ namespace api.Services
                     maxReservationHours = x.parkingLot.maxReservationHours,
                     availableRegularSpaces = x.availableSpaces.FirstOrDefault() != null ? x.availableSpaces.FirstOrDefault().regularSpaceCount : (x.parkingLot.regularSpaces - x.parkingLot.regularPlanSpaces),
                     availableElectricSpaces = x.availableSpaces.FirstOrDefault() != null ? x.availableSpaces.FirstOrDefault().electricSpaceCount : (x.parkingLot.electricSpaces - x.parkingLot.electricPlanSpaces),
-                    prices = null
+                    regularSpacePrices = null,
+                    electricSpacePrices = null
                 });
 
 
@@ -95,7 +97,8 @@ namespace api.Services
                 maxReservationHours = parkingLot.maxReservationHours,
                 availableRegularSpaces = availableSpaces != null ? availableSpaces.regularSpaceCount : (parkingLot.regularSpaces - parkingLot.regularPlanSpaces),
                 availableElectricSpaces = availableSpaces != null ? availableSpaces.electricSpaceCount : (parkingLot.electricSpaces - parkingLot.electricPlanSpaces),
-                prices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.prices)
+                regularSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.regularSpacePrices),
+                electricSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.electricSpacePrices)
             };
         }
 
@@ -133,11 +136,12 @@ namespace api.Services
                 latitude = parkingLot.latitude,
                 longitude = parkingLot.longitude,
 
-                prices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.prices)
+                regularPlanSpaces = parkingLot.regularPlanSpaces,
+                electricPlanSpaces = parkingLot.electricPlanSpaces,
             };
         }
 
-        public ParkingLotReponseDto UpdateParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
+        public ParkingLotReponseDto UpdateRegularParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
         {
 
             if (updateParkingLotPricesDto.Count() != 24)
@@ -169,7 +173,7 @@ namespace api.Services
                 throw new ParkingLotNotFoundException("Parking lot not found");
             }
 
-            parkingLot.prices = JsonConvert.SerializeObject(updateParkingLotPricesDto);
+            parkingLot.regularSpacePrices = JsonConvert.SerializeObject(updateParkingLotPricesDto);
             normalDataBaseContext.SaveChanges();
 
             return new ParkingLotReponseDto
@@ -189,9 +193,69 @@ namespace api.Services
                 reservedDiscount = parkingLot.reservedDiscount,
                 minReservationWindowHours = parkingLot.minReservationWindowHours,
                 maxReservationHours = parkingLot.maxReservationHours,
-                prices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.prices)
+                availableRegularSpaces = parkingLot.regularSpaces - parkingLot.regularPlanSpaces,
+                availableElectricSpaces = parkingLot.electricSpaces - parkingLot.electricPlanSpaces,
+                regularSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.regularSpacePrices),
+                electricSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.electricSpacePrices)
             };
         }
+        public ParkingLotReponseDto UpdateElectricParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
+        {
 
+            if (updateParkingLotPricesDto.Count() != 24)
+            {
+                throw new ParkingLotPriceTimesInvalidException("Invalid number of prices, there should have 24 hours (aka itmes) for each day");
+            }
+
+            foreach (UpdateParkingLotPricesDto item in updateParkingLotPricesDto)
+            {
+                if (!TimeSpan.TryParse(item.time, out TimeSpan time))
+                {
+                    throw new ParkingLotPriceTimeInvalidException("Invalid time format");
+                }
+
+                if (time.TotalHours < 0 || time.TotalHours > 24)
+                {
+                    throw new ParkingLotPriceTimeInvalidException("Invalid time, time should be between 0 and 24");
+                }
+
+                if (item.price < 0)
+                {
+                    throw new ParkingLotPriceInvalidException("Invalid price, price should be greater than 0");
+                }
+            }
+
+            ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == id);
+            if (parkingLot == null)
+            {
+                throw new ParkingLotNotFoundException("Parking lot not found");
+            }
+
+            parkingLot.electricSpacePrices = JsonConvert.SerializeObject(updateParkingLotPricesDto);
+            normalDataBaseContext.SaveChanges();
+
+            return new ParkingLotReponseDto
+            {
+                lotID = parkingLot.lotID,
+                name = parkingLot.name,
+                address = parkingLot.address,
+                latitude = parkingLot.latitude,
+                longitude = parkingLot.longitude,
+                totalSpaces = parkingLot.totalSpaces,
+                regularSpaces = parkingLot.regularSpaces,
+                electricSpaces = parkingLot.electricSpaces,
+                regularPlanSpaces = parkingLot.regularPlanSpaces,
+                electricPlanSpaces = parkingLot.electricPlanSpaces,
+                walkinReservedRatio = parkingLot.walkinReservedRatio,
+                reservableOnlySpaces = parkingLot.reservableOnlySpaces,
+                reservedDiscount = parkingLot.reservedDiscount,
+                minReservationWindowHours = parkingLot.minReservationWindowHours,
+                maxReservationHours = parkingLot.maxReservationHours,
+                availableRegularSpaces = parkingLot.regularSpaces - parkingLot.regularPlanSpaces,
+                availableElectricSpaces = parkingLot.electricSpaces - parkingLot.electricPlanSpaces,
+                regularSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.regularSpacePrices),
+                electricSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.electricSpacePrices)
+            };
+        }
     }
 }

@@ -78,8 +78,8 @@ namespace api.Controllers
         }
 
         [Authorize(Roles = "admin")]
-        [HttpPut("{id}/prices")]
-        public IActionResult UpdateParkingLotPrices(int id, [FromBody] IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
+        [HttpPut("{id}/prices/regular")]
+        public IActionResult UpdateRegularParkingLotPrices(int id, [FromBody] IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
         {
             try
             {
@@ -87,7 +87,42 @@ namespace api.Controllers
                 {
                     throw new RequestInvalidException("Invalid model");
                 }
-                ParkingLotReponseDto updated = parkingLotServices.UpdateParkingLotPrices(id, updateParkingLotPricesDto);
+                ParkingLotReponseDto updated = parkingLotServices.UpdateRegularParkingLotPrices(id, updateParkingLotPricesDto);
+                return Ok(updated);
+            }
+            catch (ParkingLotNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+            catch (ParkingLotPriceTimesInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (ParkingLotPriceTimeInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (ParkingLotPriceInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (RequestInvalidException ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpPut("{id}/prices/electric")]
+        public IActionResult UpdateElectricParkingLotPrices(int id, [FromBody] IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    throw new RequestInvalidException("Invalid model");
+                }
+                ParkingLotReponseDto updated = parkingLotServices.UpdateElectricParkingLotPrices(id, updateParkingLotPricesDto);
                 return Ok(updated);
             }
             catch (ParkingLotNotFoundException ex)

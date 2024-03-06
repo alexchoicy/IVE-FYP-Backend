@@ -46,7 +46,8 @@ CREATE TABLE `ParkingLots` (
     `ReservedDiscount` decimal(10, 2) NOT NULL,
     `MinReservationWindowHours` int NOT NULL,
     `MaxReservationHours` int NOT NULL,
-    `Prices` json NOT NULL,
+    `RegularSpacePrices` json NOT NULL,
+    `ElectricSpacePrices` json NOT NULL,
 
     PRIMARY KEY (`LotID`)
 );
@@ -124,9 +125,15 @@ CREATE TABLE `Reservations` (
 
 CREATE TABLE `Payments` (
     `PaymentID` int NOT NULL AUTO_INCREMENT,
-    `isPaid` boolean NOT NULL DEFAULT '0',
-    `Amount` decimal(10, 2) NOT NULL,
-    `PaymentTime` timestamp,
+    `userID` int NOT NULL,
+    `PaymentStatus` varchar(50) NOT NULL,
+    `PaymentTime` timestamp NULL DEFAULT NULL,
+    `Amount` decimal(10, 2) NOT NULL DEFAULT '-1',
+    `PaymentMethod` varchar(50) NULL,
+    `PaymentMethodType` varchar(50) NULL,
+    `PaymentType` varchar(50) NOT NULL,
+    `RelatedID` int NOT NULL,
+
     PRIMARY KEY (`PaymentID`)
 );
 
@@ -134,6 +141,7 @@ CREATE TABLE `ParkingRecords` (
     `ParkingRecordID` int NOT NULL AUTO_INCREMENT,
     `LotID` int NOT NULL,
     `PaymentID` int NOT NULL,
+    `SpaceType` varchar(50) NOT NULL,
     `EntryTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `ExitTime` timestamp,
     `ReservationID` int DEFAULT NULL,
