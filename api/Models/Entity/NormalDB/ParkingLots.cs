@@ -17,7 +17,8 @@ namespace api.Models.Entity.NormalDB
         public int regularPlanSpaces { get; set; }
         public int electricPlanSpaces { get; set; }
         public decimal walkinReservedRatio { get; set; }
-        public int reservableOnlySpaces { get; set; }
+        public int reservableOnlyRegularSpaces { get; set; }
+        public int reservableOnlyElectricSpaces { get; set; }
         public decimal reservedDiscount { get; set; }
         public int minReservationWindowHours { get; set; }
         public int maxReservationHours { get; set; }
