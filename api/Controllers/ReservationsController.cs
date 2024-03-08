@@ -132,6 +132,10 @@ namespace api.Controllers
             {
                 return BadRequest(ex);
             }
+            catch (ReservationTimeConflictException ex)
+            {
+                return BadRequest(ex);
+            }
         }
 
         [HttpGet("{reservationId}")]

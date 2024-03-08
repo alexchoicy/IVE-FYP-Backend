@@ -39,4 +39,12 @@ namespace api.Exceptions
         {
         }
     }
+
+    public class ReservationTimeConflictException : BaseCustomExceptions
+    {
+        public ReservationTimeConflictException(string message) : base(message)
+        {
+        }
+    }
+
 }

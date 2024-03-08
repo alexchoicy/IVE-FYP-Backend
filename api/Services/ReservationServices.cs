@@ -167,6 +167,20 @@ namespace api.Services
                 throw new InvalidSpaceTypeException("Incorrect vehicle type for electric space type");
             }
 
+            IEnumerable<Reservations> reservations = normalDataBaseContext.Reservations
+                .Where(r => r.lotID == createReservationRequestDto.lotID &&
+                            r.vehicleID == createReservationRequestDto.vehicleID &&
+                            ((r.startTime <= roundedStartTime && r.endTime > roundedStartTime) ||
+                            (r.startTime < roundedEndTime && r.endTime >= roundedEndTime) ||
+                            (r.startTime >= roundedStartTime && r.endTime <= roundedEndTime)))
+                .ToList();
+
+            if (reservations.Count() > 0)
+            {
+                throw new ReservationTimeConflictException("Reservation time conflict");
+            }
+
+
             for (var hour = roundedStartTime; hour < roundedEndTime; hour = hour.AddHours(1))
             {
                 HourlyAvailableSpaces? hourlyAvailableSpaces = normalDataBaseContext.HourlyAvailableSpaces.FirstOrDefault(has => has.lotID == createReservationRequestDto.lotID && has.dateTime == hour);
