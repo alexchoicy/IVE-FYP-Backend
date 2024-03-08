@@ -19,11 +19,9 @@ namespace api.utils
         private readonly MqttClientOptions mqttconfig;
         private readonly ILprDataService lprDataService;
         private readonly string ClientId;
-        // private readonly NormalDataBaseContext normalDataBaseContext;
-        public MqttClientservices(IConfiguration configuration, IDbContextFactory<NormalDataBaseContext> normalDataBaseContextFactory, IHourlyAvaiableSpaceServices hourlyAvaiableSpaceServices)
+        public MqttClientservices(IConfiguration configuration, IHourlyAvaiableSpaceServices hourlyAvaiableSpaceServices, IServiceScopeFactory serviceScopeFactory)
         {
-            using NormalDataBaseContext normalDataBaseContext = normalDataBaseContextFactory.CreateDbContext();
-            this.lprDataService = new LprDataService(normalDataBaseContext, hourlyAvaiableSpaceServices);
+            this.lprDataService = new LprDataService(serviceScopeFactory, hourlyAvaiableSpaceServices);
             ClientId = configuration.GetValue<string>("MqttClientOptions:ClientId") ?? Guid.NewGuid().ToString();
 
             mqttconfig = new MqttClientOptionsBuilder()

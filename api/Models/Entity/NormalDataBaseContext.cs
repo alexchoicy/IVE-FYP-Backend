@@ -19,5 +19,14 @@ namespace api.Models
 
         public DbSet<ParkingRecords> ParkingRecords { get; set; }
         public DbSet<Payments> Payments { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ParkingRecords>()
+                .HasOne(p => p.parkingLot)
+                .WithMany()
+                .HasForeignKey(p => p.lotID);
+        }
     }
 }

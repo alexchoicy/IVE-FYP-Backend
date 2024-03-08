@@ -17,13 +17,13 @@ namespace api.Services
     public class LprDataService : ILprDataService
     {
 
-        private readonly NormalDataBaseContext normalDataBaseContext;
+        private readonly IServiceScopeFactory serviceScopeFactory;
 
         private readonly IHourlyAvaiableSpaceServices hourlyAvaiableSpaceServices;
 
-        public LprDataService(NormalDataBaseContext normalDataBaseContext, IHourlyAvaiableSpaceServices hourlyAvaiableSpaceServices)
+        public LprDataService(IServiceScopeFactory serviceScopeFactory, IHourlyAvaiableSpaceServices hourlyAvaiableSpaceServices)
         {
-            this.normalDataBaseContext = normalDataBaseContext;
+            this.serviceScopeFactory = serviceScopeFactory;
             this.hourlyAvaiableSpaceServices = hourlyAvaiableSpaceServices;
         }
 
@@ -61,102 +61,128 @@ namespace api.Services
 
         public void CarEnter(LprReceiveModel lprReceiveModel)
         {
-            //check if the car is a registered car
-            UserVehicles? vehicles = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
-            //if the car is not registered = not a user
-            if (vehicles == null)
+            using (var scope = serviceScopeFactory.CreateScope())
             {
-                HandleWalkin(lprReceiveModel, false);
-                return;
-            }
-            //check if the car is has a reservation
-            Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(x => x.vehicleID == vehicles.vehicleID);
+                NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
+                //check if the car is a registered car
+                UserVehicles? vehicles = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
+                //if the car is not registered = not a user
+                if (vehicles == null)
+                {
+                    HandleWalkin(lprReceiveModel, false);
+                    return;
+                }
+                //check if the car is has a reservation
+                Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(x => x.vehicleID == vehicles.vehicleID);
 
-            if (reservations == null)
-            {
-                HandleWalkin(lprReceiveModel, true, vehicles);
-                return;
-            }
+                if (reservations == null)
+                {
+                    HandleWalkin(lprReceiveModel, true, vehicles);
+                    return;
+                }
 
-            HandleReservation(lprReceiveModel, vehicles, reservations);
+                HandleReservation(lprReceiveModel, vehicles, reservations);
+
+            }
         }
 
         public async void HandleWalkin(LprReceiveModel lprReceiveModel, bool isUser, UserVehicles? userVehicle = null)
         {
-            HourlyAvailableSpaces? hourlyAvailableSpaces = normalDataBaseContext.HourlyAvailableSpaces.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID && x.dateTime == DateTime.Now);
-            ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
-
-            if (hourlyAvailableSpaces == null)
+            using (var scope = serviceScopeFactory.CreateScope())
             {
-                hourlyAvailableSpaces = hourlyAvaiableSpaceServices.CreateHourlyAvaiableSpace(parkingLot, DateTime.Now);
-                normalDataBaseContext.HourlyAvailableSpaces.Add(hourlyAvailableSpaces);
+                DateTime dateTime = DateTime.Now;
+                DateTime roundedDateTime = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, 0, 0);
+
+                NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
+                HourlyAvailableSpaces? hourlyAvailableSpaces = normalDataBaseContext.HourlyAvailableSpaces.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID && x.dateTime == roundedDateTime);
+                ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
+
+                if (parkingLot == null)
+                {
+                    Console.WriteLine("Parking Lot not found");
+                    return;
+                }
+
+                if (hourlyAvailableSpaces == null)
+                {
+                    hourlyAvailableSpaces = hourlyAvaiableSpaceServices.CreateHourlyAvaiableSpace(parkingLot, roundedDateTime);
+                    normalDataBaseContext.HourlyAvailableSpaces.Add(hourlyAvailableSpaces);
+                }
+
+                if (hourlyAvailableSpaces.regularSpaceCount < parkingLot?.reservableOnlyRegularSpaces)
+                {
+                    Console.WriteLine("Regular Space for walkin is full");
+                    return;
+                }
+
+                //the current design +1 if a car enters Electronic area
+                hourlyAvailableSpaces.regularSpaceCount -= 1;
+
+                Payments payment = new Payments
+                {
+                    paymentType = PaymentType.ParkingFee,
+                    userID = isUser ? userVehicle.userID : 0,
+                };
+
+                normalDataBaseContext.Payments.Add(payment);
+                await normalDataBaseContext.SaveChangesAsync();
+
+                ParkingRecords parkingRecords = new ParkingRecords
+                {
+                    lotID = lprReceiveModel.lotID,
+                    paymentID = payment.paymentID,
+                    spaceType = SpaceType.REGULAR,
+                    entryTime = DateTime.Now,
+                    vehicleLicense = lprReceiveModel.vehicleLicense,
+                };
+                normalDataBaseContext.ParkingRecords.Add(parkingRecords);
+                await normalDataBaseContext.SaveChangesAsync();
+
+                payment.RelatedID = parkingRecords.parkingRecordID;
+                await normalDataBaseContext.SaveChangesAsync();
+
+                //TODO: a message will send to somewhere??
             }
-
-            if (hourlyAvailableSpaces.regularSpaceCount < parkingLot?.reservableOnlyRegularSpaces)
-            {
-                Console.WriteLine("Regular Space for walkin is full");
-                return;
-            }
-
-            //the current design +1 if a car enters Electronic area
-            hourlyAvailableSpaces.regularSpaceCount -= 1;
-
-            Payments payment = new Payments
-            {
-                paymentType = PaymentType.ParkingFee,
-                userID = isUser ? userVehicle.userID : 0,
-            };
-
-            normalDataBaseContext.Payments.Add(payment);
-            await normalDataBaseContext.SaveChangesAsync();
-
-            ParkingRecords parkingRecords = new ParkingRecords
-            {
-                lotID = lprReceiveModel.lotID,
-                paymentID = payment.paymentID,
-                spaceType = SpaceType.REGULAR,
-                entryTime = DateTime.Now,
-                vehicleLicense = lprReceiveModel.vehicleLicense,
-            };
-            normalDataBaseContext.ParkingRecords.Add(parkingRecords);
-            await normalDataBaseContext.SaveChangesAsync();
-
-            payment.RelatedID = parkingRecords.parkingRecordID;
-            await normalDataBaseContext.SaveChangesAsync();
-
-            //TODO: a message will send to somewhere??
         }
 
         public async void HandleReservation(LprReceiveModel lprReceiveModel, UserVehicles vehicle, Reservations reservation)
         {
-            HourlyAvailableSpaces? hourlyAvailableSpaces = normalDataBaseContext.HourlyAvailableSpaces.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID && x.dateTime == DateTime.Now);
-            ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
 
-            Payments payment = new Payments
+            using (var scope = serviceScopeFactory.CreateScope())
             {
-                paymentType = PaymentType.ParkingFee,
-                userID = vehicle.userID,
-            };
+                DateTime dateTime = DateTime.Now;
+                DateTime roundedDateTime = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, 0, 0);
 
-            normalDataBaseContext.Payments.Add(payment);
-            await normalDataBaseContext.SaveChangesAsync();
+                NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
+                HourlyAvailableSpaces? hourlyAvailableSpaces = normalDataBaseContext.HourlyAvailableSpaces.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID && x.dateTime == roundedDateTime);
+                ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
 
-            ParkingRecords parkingRecords = new ParkingRecords
-            {
-                lotID = lprReceiveModel.lotID,
-                spaceType = reservation.spaceType,
-                paymentID = payment.paymentID,
-                entryTime = DateTime.Now,
-                reservationID = reservation.reservationID,
-                vehicleLicense = lprReceiveModel.vehicleLicense,
-            };
-            normalDataBaseContext.ParkingRecords.Add(parkingRecords);
-            await normalDataBaseContext.SaveChangesAsync();
+                Payments payment = new Payments
+                {
+                    paymentType = PaymentType.ParkingFee,
+                    userID = vehicle.userID,
+                };
 
-            payment.RelatedID = parkingRecords.parkingRecordID;
-            await normalDataBaseContext.SaveChangesAsync();
+                normalDataBaseContext.Payments.Add(payment);
+                await normalDataBaseContext.SaveChangesAsync();
 
-            //TODO: a message will send to somewhere??
+                ParkingRecords parkingRecords = new ParkingRecords
+                {
+                    lotID = lprReceiveModel.lotID,
+                    spaceType = reservation.spaceType,
+                    paymentID = payment.paymentID,
+                    entryTime = DateTime.Now,
+                    reservationID = reservation.reservationID,
+                    vehicleLicense = lprReceiveModel.vehicleLicense,
+                };
+                normalDataBaseContext.ParkingRecords.Add(parkingRecords);
+                await normalDataBaseContext.SaveChangesAsync();
+
+                payment.RelatedID = parkingRecords.parkingRecordID;
+                await normalDataBaseContext.SaveChangesAsync();
+
+                //TODO: a message will send to somewhere??
+            }
         }
 
 
