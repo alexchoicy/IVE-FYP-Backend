@@ -27,6 +27,27 @@ namespace api.Models
                 .HasOne(p => p.parkingLot)
                 .WithMany()
                 .HasForeignKey(p => p.lotID);
+
+            modelBuilder.Entity<ParkingRecords>()
+                .Property(e => e.spaceType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Payments>()
+                .Property(e => e.paymentType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Payments>()
+                .Property(e => e.paymentMethodType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Payments>()
+                .Property(e => e.paymentMethod)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Payments>()
+                .Property(e => e.paymentStatus)
+                .HasConversion<string>();
+
         }
     }
 }

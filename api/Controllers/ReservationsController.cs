@@ -48,7 +48,7 @@ namespace api.Controllers
                     userId = int.Parse(tokenUserId);
                 }
 
-                IEnumerable<ReservationReponseDto> reservations;
+                IEnumerable<ReservationResponseDto> reservations;
                 if (userId != null)
                 {
                     reservations = reservationServices.getReservationsByUserID(userId.Value);
@@ -143,7 +143,7 @@ namespace api.Controllers
         {
             try
             {
-                ReservationReponseDto reservation = reservationServices.getReservationByID(reservationId);
+                ReservationResponseDto reservation = reservationServices.getReservationByID(reservationId);
                 return Ok(reservation);
             }
             catch (ReservationNotFoundException ex)

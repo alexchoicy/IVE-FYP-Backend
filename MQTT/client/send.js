@@ -9,7 +9,7 @@ client.on("connect", () => {
         `{
         "lotID": "1",
         "gateType": "IN",
-        "vehicleLicense": "ALEX"
+        "vehicleLicense": "ALEXE"
     }`,
         {},
         function (err) {

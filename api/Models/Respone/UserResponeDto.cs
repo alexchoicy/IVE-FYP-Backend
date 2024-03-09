@@ -17,7 +17,7 @@ namespace api.Models.Respone
         public bool isActive { get; set; }
     }
 
-    public class StaffReponseDto
+    public class StaffResponseDto
     {
         public int userID { get; set; }
         public required string userName { get; set; }

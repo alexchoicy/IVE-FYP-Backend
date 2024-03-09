@@ -135,6 +135,7 @@ CREATE TABLE `Payments` (
     `PaymentType` varchar(50) NOT NULL,
     `RelatedID` int NOT NULL,
 
+    `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`PaymentID`)
 );
 

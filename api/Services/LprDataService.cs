@@ -73,7 +73,7 @@ namespace api.Services
                     return;
                 }
                 //check if the car is has a reservation
-                Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(x => x.vehicleID == vehicles.vehicleID);
+                Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(x => x.vehicleID == vehicles.vehicleID && x.startTime.Date == DateTime.Now.Date);
 
                 if (reservations == null)
                 {
@@ -108,7 +108,7 @@ namespace api.Services
                     hourlyAvailableSpaces = hourlyAvaiableSpaceServices.CreateHourlyAvaiableSpace(parkingLot, roundedDateTime);
                     normalDataBaseContext.HourlyAvailableSpaces.Add(hourlyAvailableSpaces);
                 }
-
+                //TODO: LPR ERROR
                 if (hourlyAvailableSpaces.regularSpaceCount < parkingLot?.reservableOnlyRegularSpaces)
                 {
                     Console.WriteLine("Regular Space for walkin is full");
@@ -138,7 +138,7 @@ namespace api.Services
                 normalDataBaseContext.ParkingRecords.Add(parkingRecords);
                 await normalDataBaseContext.SaveChangesAsync();
 
-                payment.RelatedID = parkingRecords.parkingRecordID;
+                payment.relatedID = parkingRecords.parkingRecordID;
                 await normalDataBaseContext.SaveChangesAsync();
 
                 //TODO: a message will send to somewhere??
@@ -178,7 +178,7 @@ namespace api.Services
                 normalDataBaseContext.ParkingRecords.Add(parkingRecords);
                 await normalDataBaseContext.SaveChangesAsync();
 
-                payment.RelatedID = parkingRecords.parkingRecordID;
+                payment.relatedID = parkingRecords.parkingRecordID;
                 await normalDataBaseContext.SaveChangesAsync();
 
                 //TODO: a message will send to somewhere??

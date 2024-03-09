@@ -29,6 +29,6 @@ namespace api.Models.Entity.NormalDB
     public class LotPrices
     {
         public required string time { get; set; }
-        public required double price { get; set; }
+        public required decimal price { get; set; }
     }
 }

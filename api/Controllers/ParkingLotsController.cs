@@ -28,7 +28,7 @@ namespace api.Controllers
         {
             try
             {
-                IEnumerable<ParkingLotReponseDto>? parkingLotsData = parkingLotServices.GetParkingLots();
+                IEnumerable<ParkingLotResponseDto>? parkingLotsData = parkingLotServices.GetParkingLots();
                 return Ok(parkingLotsData);
             }
             catch (ParkingLotNotFoundException ex)
@@ -43,7 +43,7 @@ namespace api.Controllers
         {
             try
             {
-                ParkingLotReponseDto? parkingLotData = parkingLotServices.GetParkingLot(id);
+                ParkingLotResponseDto? parkingLotData = parkingLotServices.GetParkingLot(id);
                 return Ok(parkingLotData);
             }
             catch (ParkingLotNotFoundException ex)
@@ -63,7 +63,7 @@ namespace api.Controllers
                 {
                     throw new RequestInvalidException("Invalid model");
                 }
-                ParkingLotReponseDto updated = parkingLotServices.UpdateParkingLotInfo(id, updateParkingLotInfoDto);
+                ParkingLotResponseDto updated = parkingLotServices.UpdateParkingLotInfo(id, updateParkingLotInfoDto);
                 return Ok(updated);
             }
             catch (ParkingLotNotFoundException ex)
@@ -87,7 +87,7 @@ namespace api.Controllers
                 {
                     throw new RequestInvalidException("Invalid model");
                 }
-                ParkingLotReponseDto updated = parkingLotServices.UpdateRegularParkingLotPrices(id, updateParkingLotPricesDto);
+                ParkingLotResponseDto updated = parkingLotServices.UpdateRegularParkingLotPrices(id, updateParkingLotPricesDto);
                 return Ok(updated);
             }
             catch (ParkingLotNotFoundException ex)
@@ -122,7 +122,7 @@ namespace api.Controllers
                 {
                     throw new RequestInvalidException("Invalid model");
                 }
-                ParkingLotReponseDto updated = parkingLotServices.UpdateElectricParkingLotPrices(id, updateParkingLotPricesDto);
+                ParkingLotResponseDto updated = parkingLotServices.UpdateElectricParkingLotPrices(id, updateParkingLotPricesDto);
                 return Ok(updated);
             }
             catch (ParkingLotNotFoundException ex)

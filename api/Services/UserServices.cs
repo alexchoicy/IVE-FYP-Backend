@@ -18,7 +18,7 @@ namespace api.Services
     {
         UserResponeDto? getuserInfo(string userID);
         UserResponeDto updateUserInfo(string userID, UserUpdateRequestDto userUpdateRequestDto);
-        StaffReponseDto getStaffInfo(string userID);
+        StaffResponseDto getStaffInfo(string userID);
     }
 
     public class UserServices : IUserServices
@@ -111,7 +111,7 @@ namespace api.Services
             }
         }
 
-        public StaffReponseDto getStaffInfo(string userID)
+        public StaffResponseDto getStaffInfo(string userID)
         {
             int id = Convert.ToInt32(userID);
             StaffUsers? user = staffDataBaseContext.users.FirstOrDefault(x => x.UserID == id);
@@ -119,7 +119,7 @@ namespace api.Services
             {
                 throw new UserNotFoundException("User not found");
             }
-            return new StaffReponseDto
+            return new StaffResponseDto
             {
                 userID = user.UserID,
                 userName = user.userName,

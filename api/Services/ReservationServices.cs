@@ -13,10 +13,10 @@ namespace api.Services
 {
     public interface IReservationServices
     {
-        IEnumerable<ReservationReponseDto> getReservationsByUserID(int userID);
-        IEnumerable<ReservationReponseDto> getReservationsByLotID(int lotID);
-        IEnumerable<ReservationReponseDto> getReservationsByVehicleID(int vehicleID);
-        ReservationReponseDto getReservationByID(int reservationID);
+        IEnumerable<ReservationResponseDto> getReservationsByUserID(int userID);
+        IEnumerable<ReservationResponseDto> getReservationsByLotID(int lotID);
+        IEnumerable<ReservationResponseDto> getReservationsByVehicleID(int vehicleID);
+        ReservationResponseDto getReservationByID(int reservationID);
         bool createReservation(int userID, CreateReservationRequestDto createReservationRequestDto);
     }
     public class ReservationServices : IReservationServices
@@ -30,15 +30,16 @@ namespace api.Services
             this.hourlyAvaiableSpaceServices = hourlyAvaiableSpaceServices;
         }
 
-        public IEnumerable<ReservationReponseDto> getReservationsByUserID(int userID)
+        public IEnumerable<ReservationResponseDto> getReservationsByUserID(int userID)
         {
-            IEnumerable<ReservationReponseDto> reservations = normalDataBaseContext.Reservations
+            IEnumerable<ReservationResponseDto> reservations = normalDataBaseContext.Reservations
                 .Where(r => r.vehicle.userID == userID)
-                .Select(r => new ReservationReponseDto
+                .Select(r => new ReservationResponseDto
                 {
                     reservationID = r.reservationID,
                     lotID = r.lotID,
                     lotName = r.lot.name,
+                    spaceType = r.spaceType.ToString(),
                     vehicleID = r.vehicleID,
                     vehicleLicense = r.vehicle.vehicleLicense,
                     startTime = r.startTime,
@@ -51,15 +52,16 @@ namespace api.Services
             return reservations;
         }
 
-        public IEnumerable<ReservationReponseDto> getReservationsByLotID(int lotID)
+        public IEnumerable<ReservationResponseDto> getReservationsByLotID(int lotID)
         {
-            IEnumerable<ReservationReponseDto> reservations = normalDataBaseContext.Reservations
+            IEnumerable<ReservationResponseDto> reservations = normalDataBaseContext.Reservations
                 .Where(r => r.lotID == lotID)
-                .Select(r => new ReservationReponseDto
+                .Select(r => new ReservationResponseDto
                 {
                     reservationID = r.reservationID,
                     lotID = r.lotID,
                     lotName = r.lot.name,
+                    spaceType = r.spaceType.ToString(),
                     vehicleID = r.vehicleID,
                     vehicleLicense = r.vehicle.vehicleLicense,
                     startTime = r.startTime,
@@ -72,15 +74,16 @@ namespace api.Services
             return reservations;
         }
 
-        public IEnumerable<ReservationReponseDto> getReservationsByVehicleID(int vehicleID)
+        public IEnumerable<ReservationResponseDto> getReservationsByVehicleID(int vehicleID)
         {
-            IEnumerable<ReservationReponseDto> reservations = normalDataBaseContext.Reservations
+            IEnumerable<ReservationResponseDto> reservations = normalDataBaseContext.Reservations
                 .Where(r => r.vehicleID == vehicleID)
-                .Select(r => new ReservationReponseDto
+                .Select(r => new ReservationResponseDto
                 {
                     reservationID = r.reservationID,
                     lotID = r.lotID,
                     lotName = r.lot.name,
+                    spaceType = r.spaceType.ToString(),
                     vehicleID = r.vehicleID,
                     vehicleLicense = r.vehicle.vehicleLicense,
                     startTime = r.startTime,
@@ -93,14 +96,15 @@ namespace api.Services
             return reservations;
         }
 
-        public ReservationReponseDto getReservationByID(int reservationID)
+        public ReservationResponseDto getReservationByID(int reservationID)
         {
-            ReservationReponseDto? reservation = normalDataBaseContext.Reservations.Where(r => r.reservationID == reservationID)
-                .Select(r => new ReservationReponseDto
+            ReservationResponseDto? reservation = normalDataBaseContext.Reservations.Where(r => r.reservationID == reservationID)
+                .Select(r => new ReservationResponseDto
                 {
                     reservationID = r.reservationID,
                     lotID = r.lotID,
                     lotName = r.lot.name,
+                    spaceType = r.spaceType.ToString(),
                     vehicleID = r.vehicleID,
                     vehicleLicense = r.vehicle.vehicleLicense,
                     startTime = r.startTime,

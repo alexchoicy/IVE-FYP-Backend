@@ -6,13 +6,14 @@ using api.Enums;
 
 namespace api.Models.Respone
 {
-    public class ReservationReponseDto
+    public class ReservationResponseDto
     {
         public int reservationID { get; set; }
         public int lotID { get; set; }
-        public string lotName { get; set; }
+        public required string lotName { get; set; }
+        public required string spaceType { get; set; }
         public int vehicleID { get; set; }
-        public string vehicleLicense { get; set; }
+        public required string vehicleLicense { get; set; }
         public DateTime startTime { get; set; }
         public DateTime endTime { get; set; }
         public double price { get; set; }

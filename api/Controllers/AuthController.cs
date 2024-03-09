@@ -126,7 +126,7 @@ namespace api.Controllers
         }
 
         [HttpPost("admin/login")]
-        public ActionResult<ApiResponse<StaffReponseDto>> AdminLogin([FromBody] LoginRequestDto loginRequestDto)
+        public ActionResult<ApiResponse<StaffResponseDto>> AdminLogin([FromBody] LoginRequestDto loginRequestDto)
         {
             try
             {
@@ -134,7 +134,7 @@ namespace api.Controllers
                 {
                     throw new RequestInvalidException("Request is invalid");
                 }
-                (StaffReponseDto? data, string token) = authServices.AdminLogin(loginRequestDto);
+                (StaffResponseDto? data, string token) = authServices.AdminLogin(loginRequestDto);
                 Response.Cookies.Append("token", token, new CookieOptions
                 {
                     HttpOnly = true,

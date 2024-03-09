@@ -21,7 +21,7 @@ namespace api.Services
         AuthResponeDto? register(RegisterRequestDto registerRequestDto);
         bool resetPassword(ResetPasswordRequestDto resetPasswordRequestDto);
         bool resetPasswordVeify(ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto);
-        (StaffReponseDto?, string) AdminLogin(LoginRequestDto loginRequestDto);
+        (StaffResponseDto?, string) AdminLogin(LoginRequestDto loginRequestDto);
     }
 
     public class AuthServices : IAuthServices
@@ -248,7 +248,7 @@ namespace api.Services
         }
 
 
-        public (StaffReponseDto, string) AdminLogin(LoginRequestDto loginRequestDto)
+        public (StaffResponseDto, string) AdminLogin(LoginRequestDto loginRequestDto)
         {
             StaffUsers? user = staffDataBaseContext.users.FirstOrDefault(x => x.userName == loginRequestDto.username);
 
@@ -258,7 +258,7 @@ namespace api.Services
             }
 
             string token = jwtServices.CreateAdminToken(user);
-            StaffReponseDto response = new StaffReponseDto
+            StaffResponseDto response = new StaffResponseDto
             {
                 userName = user.userName,
                 email = user.Email ?? "",

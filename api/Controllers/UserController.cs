@@ -42,7 +42,7 @@ namespace api.Controllers
 
                 if (httpContextAccessor.HttpContext.User.IsInRole("admin"))
                 {
-                    StaffReponseDto? staff = userServices.getStaffInfo(userid);
+                    StaffResponseDto? staff = userServices.getStaffInfo(userid);
                     return Ok(staff);
                 }
 

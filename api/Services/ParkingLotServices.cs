@@ -12,11 +12,11 @@ namespace api.Services
 {
     public interface IParkingLotServices
     {
-        IEnumerable<ParkingLotReponseDto>? GetParkingLots();
-        ParkingLotReponseDto? GetParkingLot(int id);
-        ParkingLotReponseDto UpdateParkingLotInfo(int id, UpdateParkingLotInfoDto updateParkingLotInfoDto);
-        ParkingLotReponseDto UpdateRegularParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto);
-        ParkingLotReponseDto UpdateElectricParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto);
+        IEnumerable<ParkingLotResponseDto>? GetParkingLots();
+        ParkingLotResponseDto? GetParkingLot(int id);
+        ParkingLotResponseDto UpdateParkingLotInfo(int id, UpdateParkingLotInfoDto updateParkingLotInfoDto);
+        ParkingLotResponseDto UpdateRegularParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto);
+        ParkingLotResponseDto UpdateElectricParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto);
     }
 
     public class ParkingLotServices : IParkingLotServices
@@ -27,17 +27,17 @@ namespace api.Services
             this.normalDataBaseContext = normalDataBaseContext;
         }
 
-        public IEnumerable<ParkingLotReponseDto> GetParkingLots()
+        public IEnumerable<ParkingLotResponseDto> GetParkingLots()
         {
             DateTime now = DateTime.Now;
             DateTime roundedNow = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0);
-            IEnumerable<ParkingLotReponseDto> parkingLots = normalDataBaseContext.ParkingLots
+            IEnumerable<ParkingLotResponseDto> parkingLots = normalDataBaseContext.ParkingLots
                 .GroupJoin(
                     normalDataBaseContext.HourlyAvailableSpaces.Where(x => x.dateTime == roundedNow),
                     parkingLot => parkingLot.lotID,
                     availableSpace => availableSpace.lotID,
                     (parkingLot, availableSpaces) => new { parkingLot, availableSpaces })
-                .Select(x => new ParkingLotReponseDto
+                .Select(x => new ParkingLotResponseDto
                 {
                     lotID = x.parkingLot.lotID,
                     name = x.parkingLot.name,
@@ -69,7 +69,7 @@ namespace api.Services
             return parkingLots;
         }
 
-        public ParkingLotReponseDto GetParkingLot(int id)
+        public ParkingLotResponseDto GetParkingLot(int id)
         {
             DateTime now = DateTime.Now;
             DateTime roundedNow = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0);
@@ -79,7 +79,7 @@ namespace api.Services
                 throw new ParkingLotNotFoundException("Parking lot not found");
             }
             HourlyAvailableSpaces? availableSpaces = normalDataBaseContext.HourlyAvailableSpaces.FirstOrDefault(x => x.lotID == id && x.dateTime == roundedNow);
-            return new ParkingLotReponseDto
+            return new ParkingLotResponseDto
             {
                 lotID = parkingLot.lotID,
                 name = parkingLot.name,
@@ -104,7 +104,7 @@ namespace api.Services
             };
         }
 
-        public ParkingLotReponseDto UpdateParkingLotInfo(int id, UpdateParkingLotInfoDto updateParkingLotInfoDto)
+        public ParkingLotResponseDto UpdateParkingLotInfo(int id, UpdateParkingLotInfoDto updateParkingLotInfoDto)
         {
             ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == id);
             if (parkingLot == null)
@@ -130,7 +130,7 @@ namespace api.Services
 
             normalDataBaseContext.SaveChanges();
 
-            return new ParkingLotReponseDto
+            return new ParkingLotResponseDto
             {
                 lotID = parkingLot.lotID,
                 name = parkingLot.name,
@@ -143,7 +143,7 @@ namespace api.Services
             };
         }
 
-        public ParkingLotReponseDto UpdateRegularParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
+        public ParkingLotResponseDto UpdateRegularParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
         {
 
             if (updateParkingLotPricesDto.Count() != 24)
@@ -178,7 +178,7 @@ namespace api.Services
             parkingLot.regularSpacePrices = JsonConvert.SerializeObject(updateParkingLotPricesDto);
             normalDataBaseContext.SaveChanges();
 
-            return new ParkingLotReponseDto
+            return new ParkingLotResponseDto
             {
                 lotID = parkingLot.lotID,
                 name = parkingLot.name,
@@ -202,7 +202,7 @@ namespace api.Services
                 electricSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.electricSpacePrices)
             };
         }
-        public ParkingLotReponseDto UpdateElectricParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
+        public ParkingLotResponseDto UpdateElectricParkingLotPrices(int id, IEnumerable<UpdateParkingLotPricesDto> updateParkingLotPricesDto)
         {
 
             if (updateParkingLotPricesDto.Count() != 24)
@@ -237,7 +237,7 @@ namespace api.Services
             parkingLot.electricSpacePrices = JsonConvert.SerializeObject(updateParkingLotPricesDto);
             normalDataBaseContext.SaveChanges();
 
-            return new ParkingLotReponseDto
+            return new ParkingLotResponseDto
             {
                 lotID = parkingLot.lotID,
                 name = parkingLot.name,
