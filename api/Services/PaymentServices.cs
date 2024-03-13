@@ -219,25 +219,24 @@ namespace api.Services
 
         private decimal CalculatePrices(ParkingRecords parkingRecord, ParkingLots parkingLot, SpaceType spaceType, bool isReservated = false)
         {
+            decimal? discount = null;
+            if (isReservated)
             {
-                decimal totalPrices = 0;
-                switch (spaceType)
-                {
-                    case SpaceType.ELECTRIC:
-                        IEnumerable<LotPrices> electriclotPrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.electricSpacePrices);
-                        totalPrices = PaymentUtils.CalculateParkingFee(electriclotPrices, parkingRecord.entryTime, parkingRecord.exitTime ?? DateTime.Now);
-                        break;
-                    default:
-                        IEnumerable<LotPrices> regularlotPrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.regularSpacePrices);
-                        totalPrices = PaymentUtils.CalculateParkingFee(regularlotPrices, parkingRecord.entryTime, parkingRecord.exitTime ?? DateTime.Now);
-                        break;
-                }
-                if (isReservated)
-                {
-                    totalPrices = totalPrices * (1 - parkingLot.reservedDiscount);
-                }
-                return totalPrices;
+                discount = parkingLot.reservedDiscount;
             }
+            decimal totalPrices = 0;
+            switch (spaceType)
+            {
+                case SpaceType.ELECTRIC:
+                    IEnumerable<LotPrices> electriclotPrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.electricSpacePrices);
+                    totalPrices = PaymentUtils.CalculateParkingFee(electriclotPrices, parkingRecord.entryTime, parkingRecord.exitTime ?? DateTime.Now, discount);
+                    break;
+                default:
+                    IEnumerable<LotPrices> regularlotPrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.regularSpacePrices);
+                    totalPrices = PaymentUtils.CalculateParkingFee(regularlotPrices, parkingRecord.entryTime, parkingRecord.exitTime ?? DateTime.Now, discount);
+                    break;
+            }
+            return totalPrices;
         }
     }
 }

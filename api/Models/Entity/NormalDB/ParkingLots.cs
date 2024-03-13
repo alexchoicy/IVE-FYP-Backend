@@ -22,6 +22,8 @@ namespace api.Models.Entity.NormalDB
         public decimal reservedDiscount { get; set; }
         public int minReservationWindowHours { get; set; }
         public int maxReservationHours { get; set; }
+        public int avaiableRegularSpaces { get; set; }
+        public int avaiableElectricSpaces { get; set; }
         public required string regularSpacePrices { get; set; }
         public required string electricSpacePrices { get; set; }
     }

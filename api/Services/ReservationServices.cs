@@ -185,44 +185,41 @@ namespace api.Services
             }
 
 
-            for (var hour = roundedStartTime; hour < roundedEndTime; hour = hour.AddHours(1))
-            {
-                HourlyAvailableSpaces? hourlyAvailableSpaces = normalDataBaseContext.HourlyAvailableSpaces.FirstOrDefault(has => has.lotID == createReservationRequestDto.lotID && has.dateTime == hour);
+            HourlyReservationCount? hourlyAvailableSpaces = normalDataBaseContext.HourlyReservationCounts.FirstOrDefault(has => has.lotID == createReservationRequestDto.lotID && has.dateTime == roundedStartTime);
 
-                if (hourlyAvailableSpaces != null)
+            if (hourlyAvailableSpaces != null)
+            {
+                switch (spaceType)
                 {
-                    switch (spaceType)
-                    {
-                        case Enums.SpaceType.REGULAR:
-                            if (hourlyAvailableSpaces.regularSpaceCount <= 0)
-                            {
-                                throw new NoAvailableSpacesException("No available spaces at " + hour.ToString("yyyy-MM-dd HH:mm:ss") + " for regular spaces");
-                            }
-                            hourlyAvailableSpaces.regularSpaceCount--;
-                            break;
-                        case Enums.SpaceType.ELECTRIC:
-                            if (hourlyAvailableSpaces.electricSpaceCount <= 0)
-                            {
-                                throw new NoAvailableSpacesException("No available spaces at " + hour.ToString("yyyy-MM-dd HH:mm:ss") + " for electric spaces");
-                            }
-                            hourlyAvailableSpaces.electricSpaceCount--;
-                            break;
-                    }
+                    case Enums.SpaceType.REGULAR:
+                        if (hourlyAvailableSpaces.regularSpaceCount == parkingLot.regularSpaces)
+                        {
+                            throw new NoAvailableSpacesException("No available spaces at " + roundedStartTime.ToString("yyyy-MM-dd HH:mm:ss") + " for regular spaces");
+                        }
+                        hourlyAvailableSpaces.regularSpaceCount++;
+                        break;
+                    case Enums.SpaceType.ELECTRIC:
+                        if (hourlyAvailableSpaces.electricSpaceCount == parkingLot.electricSpaces)
+                        {
+                            throw new NoAvailableSpacesException("No available spaces at " + roundedStartTime.ToString("yyyy-MM-dd HH:mm:ss") + " for electric spaces");
+                        }
+                        hourlyAvailableSpaces.electricSpaceCount++;
+                        break;
                 }
-                else
+            }
+            else
+            {
+                HourlyReservationCount newHourlyAvailableSpaces = hourlyAvaiableSpaceServices.CreateHourlyAvaiableSpace(parkingLot, roundedStartTime);
+                switch (spaceType)
                 {
-                    HourlyAvailableSpaces newHourlyAvailableSpaces = hourlyAvaiableSpaceServices.CreateHourlyAvaiableSpace(parkingLot, hour);
-                    switch (spaceType)
-                    {
-                        case Enums.SpaceType.REGULAR:
-                            newHourlyAvailableSpaces.regularSpaceCount--;
-                            break;
-                        case Enums.SpaceType.ELECTRIC:
-                            newHourlyAvailableSpaces.electricSpaceCount--;
-                            break;
-                    }
-                    normalDataBaseContext.HourlyAvailableSpaces.Add(newHourlyAvailableSpaces);
+                    case Enums.SpaceType.REGULAR:
+                        newHourlyAvailableSpaces.regularSpaceCount++;
+                        break;
+                    case Enums.SpaceType.ELECTRIC:
+                        newHourlyAvailableSpaces.electricSpaceCount++;
+                        break;
                 }
+                normalDataBaseContext.HourlyReservationCounts.Add(newHourlyAvailableSpaces);
             }
 
             int reservationCount = normalDataBaseContext.Reservations

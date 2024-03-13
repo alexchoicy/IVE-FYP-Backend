@@ -31,35 +31,29 @@ namespace api.Services
         {
             DateTime now = DateTime.Now;
             DateTime roundedNow = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0);
-            IEnumerable<ParkingLotResponseDto> parkingLots = normalDataBaseContext.ParkingLots
-                .GroupJoin(
-                    normalDataBaseContext.HourlyAvailableSpaces.Where(x => x.dateTime == roundedNow),
-                    parkingLot => parkingLot.lotID,
-                    availableSpace => availableSpace.lotID,
-                    (parkingLot, availableSpaces) => new { parkingLot, availableSpaces })
-                .Select(x => new ParkingLotResponseDto
-                {
-                    lotID = x.parkingLot.lotID,
-                    name = x.parkingLot.name,
-                    address = x.parkingLot.address,
-                    latitude = x.parkingLot.latitude,
-                    longitude = x.parkingLot.longitude,
-                    totalSpaces = x.parkingLot.totalSpaces,
-                    regularSpaces = x.parkingLot.regularSpaces,
-                    electricSpaces = x.parkingLot.electricSpaces,
-                    regularPlanSpaces = x.parkingLot.regularPlanSpaces,
-                    electricPlanSpaces = x.parkingLot.electricPlanSpaces,
-                    walkinReservedRatio = x.parkingLot.walkinReservedRatio,
-                    reservableOnlyRegularSpaces = x.parkingLot.reservableOnlyRegularSpaces,
-                    reservableOnlyElectricSpaces = x.parkingLot.reservableOnlyElectricSpaces,
-                    reservedDiscount = x.parkingLot.reservedDiscount,
-                    minReservationWindowHours = x.parkingLot.minReservationWindowHours,
-                    maxReservationHours = x.parkingLot.maxReservationHours,
-                    availableRegularSpaces = x.availableSpaces.FirstOrDefault() != null ? x.availableSpaces.FirstOrDefault().regularSpaceCount : (x.parkingLot.regularSpaces - x.parkingLot.regularPlanSpaces),
-                    availableElectricSpaces = x.availableSpaces.FirstOrDefault() != null ? x.availableSpaces.FirstOrDefault().electricSpaceCount : (x.parkingLot.electricSpaces - x.parkingLot.electricPlanSpaces),
-                    regularSpacePrices = null,
-                    electricSpacePrices = null
-                });
+            IEnumerable<ParkingLotResponseDto> parkingLots = normalDataBaseContext.ParkingLots.Select(x => new ParkingLotResponseDto
+            {
+                lotID = x.lotID,
+                name = x.name,
+                address = x.address,
+                latitude = x.latitude,
+                longitude = x.longitude,
+                totalSpaces = x.totalSpaces,
+                regularSpaces = x.regularSpaces,
+                electricSpaces = x.electricSpaces,
+                regularPlanSpaces = x.regularPlanSpaces,
+                electricPlanSpaces = x.electricPlanSpaces,
+                walkinReservedRatio = x.walkinReservedRatio,
+                reservableOnlyRegularSpaces = x.reservableOnlyRegularSpaces,
+                reservableOnlyElectricSpaces = x.reservableOnlyElectricSpaces,
+                reservedDiscount = x.reservedDiscount,
+                minReservationWindowHours = x.minReservationWindowHours,
+                maxReservationHours = x.maxReservationHours,
+                availableRegularSpaces = x.avaiableRegularSpaces,
+                availableElectricSpaces = x.avaiableElectricSpaces,
+                regularSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(x.regularSpacePrices),
+                electricSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(x.electricSpacePrices)
+            }).ToList();
 
 
             if (parkingLots == null)
@@ -78,7 +72,6 @@ namespace api.Services
             {
                 throw new ParkingLotNotFoundException("Parking lot not found");
             }
-            HourlyAvailableSpaces? availableSpaces = normalDataBaseContext.HourlyAvailableSpaces.FirstOrDefault(x => x.lotID == id && x.dateTime == roundedNow);
             return new ParkingLotResponseDto
             {
                 lotID = parkingLot.lotID,
@@ -97,8 +90,8 @@ namespace api.Services
                 reservedDiscount = parkingLot.reservedDiscount,
                 minReservationWindowHours = parkingLot.minReservationWindowHours,
                 maxReservationHours = parkingLot.maxReservationHours,
-                availableRegularSpaces = availableSpaces != null ? availableSpaces.regularSpaceCount : (parkingLot.regularSpaces - parkingLot.regularPlanSpaces),
-                availableElectricSpaces = availableSpaces != null ? availableSpaces.electricSpaceCount : (parkingLot.electricSpaces - parkingLot.electricPlanSpaces),
+                availableRegularSpaces = parkingLot.avaiableRegularSpaces,
+                availableElectricSpaces = parkingLot.avaiableElectricSpaces,
                 regularSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.regularSpacePrices),
                 electricSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.electricSpacePrices)
             };
@@ -196,8 +189,8 @@ namespace api.Services
                 reservedDiscount = parkingLot.reservedDiscount,
                 minReservationWindowHours = parkingLot.minReservationWindowHours,
                 maxReservationHours = parkingLot.maxReservationHours,
-                availableRegularSpaces = parkingLot.regularSpaces - parkingLot.regularPlanSpaces,
-                availableElectricSpaces = parkingLot.electricSpaces - parkingLot.electricPlanSpaces,
+                availableRegularSpaces = parkingLot.avaiableRegularSpaces,
+                availableElectricSpaces = parkingLot.avaiableElectricSpaces,
                 regularSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.regularSpacePrices),
                 electricSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.electricSpacePrices)
             };
@@ -255,8 +248,8 @@ namespace api.Services
                 reservedDiscount = parkingLot.reservedDiscount,
                 minReservationWindowHours = parkingLot.minReservationWindowHours,
                 maxReservationHours = parkingLot.maxReservationHours,
-                availableRegularSpaces = parkingLot.regularSpaces - parkingLot.regularPlanSpaces,
-                availableElectricSpaces = parkingLot.electricSpaces - parkingLot.electricPlanSpaces,
+                availableRegularSpaces = parkingLot.avaiableRegularSpaces,
+                availableElectricSpaces = parkingLot.avaiableElectricSpaces,
                 regularSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.regularSpacePrices),
                 electricSpacePrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.electricSpacePrices)
             };

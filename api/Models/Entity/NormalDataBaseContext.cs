@@ -15,7 +15,7 @@ namespace api.Models
         public DbSet<UserVehicles> UserVehicles { get; set; }
         public DbSet<ParkingLots> ParkingLots { get; set; }
         public DbSet<Reservations> Reservations { get; set; }
-        public DbSet<HourlyAvailableSpaces> HourlyAvailableSpaces { get; set; }
+        public DbSet<HourlyReservationCount> HourlyReservationCounts { get; set; }
 
         public DbSet<ParkingRecords> ParkingRecords { get; set; }
         public DbSet<Payments> Payments { get; set; }

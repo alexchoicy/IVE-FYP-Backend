@@ -15,7 +15,7 @@ namespace api.Models.Entity.NormalDB
     //     public required int count { get; set; }
     // }
 
-    public class HourlyAvailableSpaces
+    public class HourlyReservationCount
     {
         [Key]
         public int recordID { get; set; }

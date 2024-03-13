@@ -94,7 +94,6 @@ namespace api.Services
                 DateTime roundedDateTime = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, 0, 0);
 
                 NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
-                HourlyAvailableSpaces? hourlyAvailableSpaces = normalDataBaseContext.HourlyAvailableSpaces.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID && x.dateTime == roundedDateTime);
                 ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
 
                 if (parkingLot == null)
@@ -103,20 +102,17 @@ namespace api.Services
                     return;
                 }
 
-                if (hourlyAvailableSpaces == null)
-                {
-                    hourlyAvailableSpaces = hourlyAvaiableSpaceServices.CreateHourlyAvaiableSpace(parkingLot, roundedDateTime);
-                    normalDataBaseContext.HourlyAvailableSpaces.Add(hourlyAvailableSpaces);
-                }
                 //TODO: LPR ERROR
-                if (hourlyAvailableSpaces.regularSpaceCount < parkingLot?.reservableOnlyRegularSpaces)
+                if (parkingLot.avaiableRegularSpaces < parkingLot?.reservableOnlyRegularSpaces)
                 {
                     Console.WriteLine("Regular Space for walkin is full");
                     return;
                 }
 
                 //the current design +1 if a car enters Electronic area
-                hourlyAvailableSpaces.regularSpaceCount -= 1;
+                parkingLot.avaiableRegularSpaces -= 1;
+                normalDataBaseContext.ParkingLots.Update(parkingLot);
+                await normalDataBaseContext.SaveChangesAsync();
 
                 Payments payment = new Payments
                 {
@@ -154,7 +150,6 @@ namespace api.Services
                 DateTime roundedDateTime = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, 0, 0);
 
                 NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
-                HourlyAvailableSpaces? hourlyAvailableSpaces = normalDataBaseContext.HourlyAvailableSpaces.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID && x.dateTime == roundedDateTime);
                 ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
 
                 Payments payment = new Payments
@@ -163,8 +158,21 @@ namespace api.Services
                     userID = vehicle.userID,
                 };
 
+                //used to hold the space first avoid if there the driver don't entry electronic area
+                //but still be counted as electric space wahahahahahhaha
+                if (reservation.spaceType == SpaceType.ELECTRIC)
+                {
+                    parkingLot.avaiableRegularSpaces -= 1;
+                }
+
+                normalDataBaseContext.ParkingLots.Update(parkingLot);
+                await normalDataBaseContext.SaveChangesAsync();
+
                 normalDataBaseContext.Payments.Add(payment);
                 await normalDataBaseContext.SaveChangesAsync();
+
+                reservation.reservationStatus = ReservationStatus.ACTIVE;
+                normalDataBaseContext.Reservations.Update(reservation);
 
                 ParkingRecords parkingRecords = new ParkingRecords
                 {
@@ -175,6 +183,7 @@ namespace api.Services
                     reservationID = reservation.reservationID,
                     vehicleLicense = lprReceiveModel.vehicleLicense,
                 };
+
                 normalDataBaseContext.ParkingRecords.Add(parkingRecords);
                 await normalDataBaseContext.SaveChangesAsync();
 
@@ -185,41 +194,65 @@ namespace api.Services
             }
         }
 
+        public void CarExit(LprReceiveModel lprReceiveModel)
+        {
+            using (var scope = serviceScopeFactory.CreateScope())
+            {
+                DateTime dateTime = DateTime.Now;
+                DateTime roundedDateTime = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, 0, 0);
+
+                NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
+                ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
+                ParkingLots parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
+                if (parkingRecords == null)
+                {
+                    Console.WriteLine("Car not found");
+                    return;
+                }
+
+                parkingRecords.exitTime = DateTime.Now;
+                normalDataBaseContext.ParkingRecords.Update(parkingRecords);
+                parkingLot.avaiableRegularSpaces += 1;
+                normalDataBaseContext.ParkingLots.Update(parkingLot);
+
+                if (parkingRecords.reservationID != null)
+                {
+                    Reservations? reservation = normalDataBaseContext.Reservations.Find(parkingRecords.reservationID);
+                    if (reservation == null)
+                    {
+                        Console.WriteLine("Reservation not found");
+                        return;
+                    }
+
+                    reservation.reservationStatus = ReservationStatus.COMPLETED;
+
+                    normalDataBaseContext.Reservations.Update(reservation);
+                }
+
+                normalDataBaseContext.SaveChanges();
 
 
+                if (parkingRecords.payment.paymentStatus == PaymentStatus.Completed)
+                {
+                    if (parkingRecords.payment.paymentTime < parkingRecords.payment.paymentTime.Value.AddMinutes(30))
+                    {
+                        //Finished Payment
+                        return;
+                    }
+                    // TODO: a user leave 30 minutes after payment
+                    Console.WriteLine("User leave 30 minutes after payment");
+                    return;
+                }
 
-        // public void CarExit(LprReceiveModel lprReceiveModel)
-        // {
-        //     ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
-        //     if (parkingRecords == null)
-        //     {
-        //         Console.WriteLine("Car not found");
-        //         return;
-        //     }
-
-        //     parkingRecords.exitTime = DateTime.Now;
-        //     normalDataBaseContext.ParkingRecords.Update(parkingRecords);
-
-        //     if (parkingRecords.payment.amount == -1)
-        //     {
-        //         Decimal amount = PaymentUtils.CalculateParkingFee();
-        //     }
-
-
-        //     bool success = Enum.TryParse(parkingRecords.payment.paymentStatus.ToString(), out PaymentStatus paymentStatus);
-
-        //     if (paymentStatus.Equals(PaymentStatus.Pending))
-        //     {
-
-        //         //TODO: use machine to pay
-        //     }
-
-        //     normalDataBaseContext.SaveChanges();
-        // }
-
+                // TODO: use machine to pay
+                Console.WriteLine("Use machine to pay");
+            }
+        }
         //TODO: later
         public void CarEnterElectronicArea(LprReceiveModel lprReceiveModel)
         {
+            //if a reservation is regular but entered warn if he don't leave the electronic area in 5 minutes, he will be charged as normal electric space
+
             Console.WriteLine("Car Enter Electronic");
         }
 
@@ -229,3 +262,6 @@ namespace api.Services
         }
     }
 }
+
+
+// TODO: a cron job that will run every hour to update the hourly available space by (- reservation count)

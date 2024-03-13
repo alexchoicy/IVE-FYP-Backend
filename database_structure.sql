@@ -47,13 +47,15 @@ CREATE TABLE `ParkingLots` (
     `ReservedDiscount` decimal(10, 2) NOT NULL,
     `MinReservationWindowHours` int NOT NULL,
     `MaxReservationHours` int NOT NULL,
+    `avaiableRegularSpaces` int NOT NULL,
+    `avaiableElectricSpaces` int NOT NULL,
     `RegularSpacePrices` json NOT NULL,
     `ElectricSpacePrices` json NOT NULL,
 
     PRIMARY KEY (`LotID`)
 );
 
-CREATE TABLE `HourlyAvailableSpaces` (
+CREATE TABLE `HourlyReservationCount` (
     `RecordID` int NOT NULL AUTO_INCREMENT,
     `LotID` int NOT NULL,
     `DateTime` timestamp NOT NULL,

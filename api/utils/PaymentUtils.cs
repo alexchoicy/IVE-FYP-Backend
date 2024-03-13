@@ -9,16 +9,21 @@ namespace api.utils
     public static class PaymentUtils
     {
 
-        public static decimal CalculateParkingFee(IEnumerable<LotPrices> lotPrices, DateTime start, DateTime end)
+        public static decimal CalculateParkingFee(IEnumerable<LotPrices> lotPrices, DateTime start, DateTime end, decimal? discount)
         {
             decimal total = 0;
-            var hours = (int)(end - start).TotalHours;
+            int hours = (int)(end - start).TotalHours;
 
             for (int i = 0; i < hours; i++)
             {
                 var currentTime = start.AddHours(i).TimeOfDay;
                 decimal price = lotPrices.FirstOrDefault(p => TimeSpan.Parse(p.time) <= currentTime)?.price ?? 0;
                 total += price;
+            }
+
+            if (discount != null)
+            {
+                total = total * (1 - (decimal)discount);
             }
 
             return total;
