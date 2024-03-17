@@ -13,12 +13,12 @@ namespace api.Models.Entity.NormalDB
         public int paymentID { get; set; }
         public required int userID { get; set; } // 0 if not a user
         public DateTime? paymentTime { get; set; } = null;
-        public decimal amount { get; set; } = -1;
-        public PaymentType paymentType { get; set; }
+        public required decimal amount { get; set; }
+        public required PaymentType paymentType { get; set; }
         public int relatedID { get; set; }
         public PaymentMethodType? paymentMethodType { get; set; } = null;
         public PaymentMethod? paymentMethod { get; set; } = null;
-        public PaymentStatus paymentStatus { get; set; } = PaymentStatus.Pending;
+        public required PaymentStatus paymentStatus { get; set; }
 
         public DateTime createdAt { get; set; } = DateTime.Now;
     }

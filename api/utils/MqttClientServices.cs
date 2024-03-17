@@ -21,7 +21,7 @@ namespace api.utils
         private readonly string ClientId;
         public MqttClientservices(IConfiguration configuration, IHourlyAvaiableSpaceServices hourlyAvaiableSpaceServices, IServiceScopeFactory serviceScopeFactory)
         {
-            this.lprDataService = new LprDataService(serviceScopeFactory, hourlyAvaiableSpaceServices);
+            this.lprDataService = new LprDataService(serviceScopeFactory);
             ClientId = configuration.GetValue<string>("MqttClientOptions:ClientId") ?? Guid.NewGuid().ToString();
 
             mqttconfig = new MqttClientOptionsBuilder()
@@ -84,6 +84,7 @@ namespace api.utils
                     LprReceiveModel? lprReceiveModel = JsonConvert.DeserializeObject<LprReceiveModel>(message);
                     if (lprReceiveModel != null)
                     {
+                        lprReceiveModel.vehicleLicense = lprReceiveModel.vehicleLicense.ToUpper().Trim();
                         lprDataService.gateManagement(lprReceiveModel);
                     }
                     break;

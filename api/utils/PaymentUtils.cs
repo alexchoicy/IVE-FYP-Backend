@@ -12,7 +12,7 @@ namespace api.utils
         public static decimal CalculateParkingFee(IEnumerable<LotPrices> lotPrices, DateTime start, DateTime end, decimal? discount)
         {
             decimal total = 0;
-            int hours = (int)(end - start).TotalHours;
+            int hours = (int)(end - start).TotalHours + 1;
 
             for (int i = 0; i < hours; i++)
             {

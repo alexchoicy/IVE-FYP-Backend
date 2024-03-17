@@ -18,6 +18,7 @@ namespace api.Services
         IEnumerable<PaymentResponseDto> GetPaymentsByUserId(int userId);
         DetailedPaymentResponseDto GetPayment(int paymentID, int tokenUserID);
         bool MakePayment(int paymentID, MakePaymentRequestDto makePaymentRequestDto);
+        decimal CalculatePrices(ParkingRecords parkingRecord, ParkingLots parkingLot, SpaceType spaceType, bool isReservated = false);
     }
     public class PaymentServices : IPaymentServices
     {
@@ -217,7 +218,7 @@ namespace api.Services
             return true;
         }
 
-        private decimal CalculatePrices(ParkingRecords parkingRecord, ParkingLots parkingLot, SpaceType spaceType, bool isReservated = false)
+        public decimal CalculatePrices(ParkingRecords parkingRecord, ParkingLots parkingLot, SpaceType spaceType, bool isReservated = false)
         {
             decimal? discount = null;
             if (isReservated)

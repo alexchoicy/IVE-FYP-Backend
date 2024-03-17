@@ -4,18 +4,18 @@ const client = mqtt.connect(process.env.MQTT_HOST);
 client.subscribe("LPR");
 
 client.on("connect", () => {
-    client.publish(
-        "LPR",
-        `{
+  client.publish(
+    "LPR",
+    `{
         "lotID": "1",
         "gateType": "IN",
         "vehicleLicense": "ALEXE"
     }`,
-        {},
-        function (err) {
-            if (!err) {
-                client.end();
-            }
-        }
-    );
+    {},
+    function(err) {
+      if (!err) {
+        client.end();
+      }
+    }
+  );
 });

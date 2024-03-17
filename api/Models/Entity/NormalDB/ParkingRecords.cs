@@ -16,12 +16,14 @@ namespace api.Models.Entity.NormalDB
         public required int lotID { get; set; }
         [ForeignKey("Payments")]
         public required int paymentID { get; set; }
+        [ForeignKey("Reservations")]
+        public int? reservationID { get; set; }
         public required SpaceType spaceType { get; set; }
         public required DateTime entryTime { get; set; }
         public DateTime? exitTime { get; set; }
-        [ForeignKey("Reservations")]
-        public int? reservationID { get; set; }
         public required string vehicleLicense { get; set; }
+
+        public required int sessionID { get; set; }
 
         //references
         public virtual Reservations reservation { get; set; }
