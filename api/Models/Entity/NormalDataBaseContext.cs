@@ -19,7 +19,7 @@ namespace api.Models
 
         public DbSet<ParkingRecords> ParkingRecords { get; set; }
         public DbSet<Payments> Payments { get; set; }
-
+        public DbSet<ParkingRecordSessions> ParkingRecordSessions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

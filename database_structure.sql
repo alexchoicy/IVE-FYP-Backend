@@ -154,5 +154,16 @@ CREATE TABLE `ParkingRecords` (
 
     PRIMARY KEY (`ParkingRecordID`),
     FOREIGN KEY (`LotID`) REFERENCES `ParkingLots`(`LotID`),
-    FOREIGN KEY (`PaymentID`) REFERENCES `Payments`(`PaymentID`)
+    FOREIGN KEY (`PaymentID`) REFERENCES `Payments`(`PaymentID`),
+    FOREIGN KEY (`SessionID`) REFERENCES `ParkingRecordSessions`(`SessionID`),
 );
+
+CREATE TABLE `ParkingRecordSessions` (
+    `sessionID` int NOT NULL AUTO_INCREMENT,
+    `vehicleLicense` varchar(50) NOT NULL,
+    `LotID` int NOT NULL,
+    `CreatedTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`sessionID`),
+    FOREIGN KEY (`LotID`) REFERENCES `ParkingLots`(`LotID`)
+)

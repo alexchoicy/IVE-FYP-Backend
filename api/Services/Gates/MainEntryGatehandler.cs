@@ -70,7 +70,7 @@ namespace api.Services.Gates
             parkingLot.avaiableRegularSpaces--;
             await normalDataBaseContext.SaveChangesAsync();
 
-            int sessionID = getSessionID(normalDataBaseContext, lprReceiveModel);
+            int sessionID = createSessionID(normalDataBaseContext, lprReceiveModel);
 
             CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.REGULAR, vehicle);
 
@@ -84,7 +84,7 @@ namespace api.Services.Gates
                 await normalDataBaseContext.SaveChangesAsync();
             }
 
-            int sessionID = getSessionID(normalDataBaseContext, lprReceiveModel);
+            int sessionID = createSessionID(normalDataBaseContext, lprReceiveModel);
 
             CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.REGULAR, vehicle, reservations.spaceType == SpaceType.REGULAR ? reservations : null);
         }

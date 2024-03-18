@@ -23,6 +23,7 @@ namespace api.Models.Entity.NormalDB
         public DateTime? exitTime { get; set; }
         public required string vehicleLicense { get; set; }
 
+        [ForeignKey("ParkingRecordSessions")]
         public required int sessionID { get; set; }
 
         //references

@@ -6,13 +6,12 @@ using api.Enums;
 using api.Models;
 using api.Models.Entity.NormalDB;
 using api.Models.LprData;
-using Newtonsoft.Json;
 
 namespace api.Services.Gates
 {
-    public class ElectricEntryGatehandler : GateHandler
+    public class ElectricExitGateHandler : GateHandler
     {
-        public ElectricEntryGatehandler(IServiceScopeFactory serviceScopeFactory) : base(serviceScopeFactory)
+        public ElectricExitGateHandler(IServiceScopeFactory serviceScopeFactory) : base(serviceScopeFactory)
         {
         }
 
@@ -40,7 +39,7 @@ namespace api.Services.Gates
                 x.startTime.AddMinutes(maxEarlyTime) <= DateTime.Now &&
                 x.startTime.AddMinutes(maxLateTime) >= DateTime.Now &&
                 x.reservationStatus == ReservationStatus.PAID &&
-                x.spaceType == SpaceType.ELECTRIC &&
+                x.spaceType == SpaceType.REGULAR &&
                 x.lotID == lprReceiveModel.lotID
                 );
 
@@ -70,7 +69,7 @@ namespace api.Services.Gates
             normalDataBaseContext.SaveChanges();
 
             //Calculate the last record of the vehicle
-            decimal price = CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.REGULAR, parkingRecords);
+            decimal price = CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.ELECTRIC, parkingRecords);
 
             Payments lastPayment = normalDataBaseContext.Payments.FirstOrDefault(x => x.paymentID == parkingRecords.paymentID);
 
@@ -85,7 +84,7 @@ namespace api.Services.Gates
 
             int sessionID = parkingRecords.sessionID;
 
-            CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.ELECTRIC, vehicles);
+            CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.REGULAR, vehicles);
 
         }
         protected override void HandleReservation(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicles, Reservations reservations)
@@ -96,7 +95,7 @@ namespace api.Services.Gates
             parkingRecords.exitTime = DateTime.Now;
             normalDataBaseContext.SaveChanges();
 
-            decimal price = CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.REGULAR, parkingRecords);
+            decimal price = CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.ELECTRIC, parkingRecords);
 
             Payments lastPayment = normalDataBaseContext.Payments.FirstOrDefault(x => x.paymentID == parkingRecords.paymentID);
 
@@ -111,7 +110,7 @@ namespace api.Services.Gates
 
             int sessionID = parkingRecords.sessionID;
 
-            CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.ELECTRIC, vehicles, reservations);
+            CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.REGULAR, vehicles, reservations);
         }
     }
 }

@@ -64,15 +64,25 @@ namespace api.Services.Gates
             await normalDataBaseContext.SaveChangesAsync();
         }
 
-        protected int getSessionID(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel)
+        protected int createSessionID(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel)
         {
-            int sessionID = normalDataBaseContext.ParkingRecords
-                .Where(x => x.vehicleLicense == lprReceiveModel.vehicleLicense)
-                .Max(parkingrecord => (int?)parkingrecord.sessionID) ?? 0;
+            // int sessionID = normalDataBaseContext.ParkingRecords
+            //     .Where(x => x.vehicleLicense == lprReceiveModel.vehicleLicense)
+            //     .Max(parkingrecord => (int?)parkingrecord.sessionID) ?? 0;
 
-            sessionID++;
+            // sessionID++;
 
-            return sessionID;
+            ParkingRecordSessions parkingRecordSessions = new ParkingRecordSessions
+            {
+                vehicleLicense = lprReceiveModel.vehicleLicense,
+                lotID = lprReceiveModel.lotID,
+                CreatedAt = DateTime.Now,
+            };
+
+            normalDataBaseContext.ParkingRecordSessions.Add(parkingRecordSessions);
+            normalDataBaseContext.SaveChanges();
+
+            return parkingRecordSessions.sessionID;
         }
 
         protected Reservations? GetReservations(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, UserVehicles vehicles, SpaceType spaceType)
@@ -94,6 +104,11 @@ namespace api.Services.Gates
         //refacter this thank you lol, what 7 i doing
         protected decimal CalculateLastRecord(NormalDataBaseContext normalDataBaseContext, ParkingLots parkingLot, SpaceType spaceType, ParkingRecords parkingRecords)
         {
+            if (parkingRecords.exitTime - parkingRecords.entryTime <= TimeSpan.FromMinutes(GracePeriodForFree))
+            {
+                return 0;
+            }
+
             IEnumerable<LotPrices>? lotPrices = JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(spaceType == SpaceType.REGULAR ? parkingLot.regularSpacePrices : parkingLot.electricSpacePrices);
             if (parkingRecords.reservationID == null)
             {

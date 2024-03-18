@@ -239,5 +239,11 @@ namespace api.Services
             }
             return totalPrices;
         }
+
+        //TODO: get payment by parking session
+        public Task GetPaymentByParkingSession(int userID, int sessionID)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
