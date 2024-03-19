@@ -8,6 +8,7 @@ using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace api.Controllers
 {
@@ -29,20 +30,20 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetParkingRecords(int userid, int? recordsPerPage, int? page)
+        public async Task<IActionResult> GetParkingRecords(int userid, int? recordsPerPage, int? page)
         {
             recordsPerPage = recordsPerPage ?? 15;
             page = page ?? 1;
 
-            IEnumerable<ParkingRecordResponseDtoDetailed> records = parkingRecordServices.GetParkingRecords(userid, recordsPerPage.Value, page.Value);
-
+            IEnumerable<ParkingRecordResponseDtoDetailed> records = await parkingRecordServices.GetParkingRecordsAsync(userid, recordsPerPage.Value, page.Value);
+            Console.WriteLine(JsonConvert.SerializeObject(records));
             return Ok(records);
         }
 
         [HttpGet("{sessionID}")]
-        public IActionResult GetParkingRecord(int userid, int sessionID)
+        public async Task<IActionResult> GetParkingRecord(int userid, int sessionID)
         {
-            ParkingRecordResponseDtoDetailed record = parkingRecordServices.GetParkingRecord(userid, sessionID);
+            ParkingRecordResponseDtoDetailed record = await parkingRecordServices.GetParkingRecord(userid, sessionID);
 
             return Ok(record);
         }

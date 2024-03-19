@@ -20,8 +20,10 @@ namespace api.Services.Gates
             NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(serviceScopeFactory.CreateScope());
             UserVehicles? vehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
             ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
+            parkingLot.avaiableRegularSpaces++;
+            normalDataBaseContext.SaveChanges();
 
-
+            HandleFinalExit(normalDataBaseContext, lprReceiveModel, parkingLot, vehicle);
         }
 
         private void HandleFinalExit(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicles = null)

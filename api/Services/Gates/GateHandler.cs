@@ -125,30 +125,40 @@ namespace api.Services.Gates
         protected decimal GetLastRecordPrices(IEnumerable<LotPrices> lotPrices, ParkingRecords parkingRecords, Reservations? reservation = null, decimal discount = 0)
         {
             decimal price = 0;
-            DateTime endTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute / GracePeriodForPayment * GracePeriodForPayment, 0);
+            int totalHours = (int)(DateTime.Now - parkingRecords.entryTime).TotalHours;
+            int totalMinutes = (int)(DateTime.Now - parkingRecords.entryTime).TotalMinutes % 60;
+
+            if (totalMinutes > GracePeriodForPayment)
+            {
+                totalHours++;
+            }
+
             if (reservation == null)
             {
-                price = CalculatePriceWithoutReservation(parkingRecords.entryTime, DateTime.Now, lotPrices);
+                price = CalculatePriceWithoutReservation(totalHours, lotPrices);
             }
-            else if (endTime <= reservation.endTime)
+            else if (DateTime.Now <= reservation.endTime.AddMinutes(GracePeriodForPayment))
             {
-                price = CalculatePriceWithReservation(parkingRecords.entryTime, endTime, lotPrices.ToList(), discount);
+                price = CalculatePriceWithReservation(totalHours, lotPrices, discount);
             }
             else
             {
-                price = CalculatePriceWithReservation(parkingRecords.entryTime, reservation.endTime, lotPrices.ToList(), discount);
-                price += CalculatePriceWithoutReservation(reservation.endTime, endTime, lotPrices);
+                int totalReservationHours = (int)(reservation.endTime - parkingRecords.entryTime).TotalHours;
+                int totalHoursAfterReservation = totalHours - totalReservationHours;
+                price = CalculatePriceWithReservation(totalReservationHours, lotPrices, discount);
+                price += CalculatePriceWithoutReservation(totalHoursAfterReservation, lotPrices);
             }
 
             return price;
         }
-        private decimal CalculatePriceWithoutReservation(DateTime startTime, DateTime endTime, IEnumerable<LotPrices> lotPrices)
+
+        private decimal CalculatePriceWithoutReservation(int totalHours, IEnumerable<LotPrices> lotPrices)
         {
             decimal price = 0;
 
-            for (DateTime time = startTime; time < endTime; time = time.AddHours(1))
+            for (int i = 0; i < totalHours; i++)
             {
-                string timeString = time.ToString("HH:00");
+                string timeString = (DateTime.Now - TimeSpan.FromHours(totalHours - i)).ToString("HH:00");
                 decimal hourPrice = lotPrices.FirstOrDefault(lp => lp.time == timeString)?.price ?? 0;
                 price += hourPrice;
             }
@@ -156,9 +166,9 @@ namespace api.Services.Gates
             return price;
         }
 
-        private decimal CalculatePriceWithReservation(DateTime startTime, DateTime endTime, List<LotPrices> lotPrices, decimal discount)
+        private decimal CalculatePriceWithReservation(int totalHours, IEnumerable<LotPrices> lotPrices, decimal discount)
         {
-            decimal price = CalculatePriceWithoutReservation(startTime, endTime, lotPrices);
+            decimal price = CalculatePriceWithoutReservation(totalHours, lotPrices);
 
             return price * (1 - discount);
         }
@@ -166,6 +176,6 @@ namespace api.Services.Gates
         // no resevation: cal with the startTime, endTime
         // have resetvation and the REndtime is >= endTime: cal with startTime and endTime with discount
         // have restvation and the endTime is > RendTime: cal with the startTime to RendTime first, and RendTime to endtime
-        // if the time is the RendTime is 12:00 but endTime is 12:14 it is still count as 12:00
+        // if the between exit and entry minutes is more than 15, add 1 hour
     }
 }

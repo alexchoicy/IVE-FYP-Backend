@@ -47,8 +47,6 @@ namespace api.Services.Gates
                 );
             Console.WriteLine(JsonConvert.SerializeObject(normalDataBaseContext.Reservations.Where(x => x.vehicleID == vehicle.vehicleID).ToList()));
 
-            Console.WriteLine("Reservations: " + reservations.startTime.AddMinutes(maxEarlyTime) + " " + reservations.startTime.AddMinutes(maxLateTime) + " " + DateTime.Now);
-
             if (reservations != null)
             {
                 HandleReservation(normalDataBaseContext, lprReceiveModel, parkingLot, vehicle, reservations);

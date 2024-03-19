@@ -5,13 +5,15 @@ using System.Threading.Tasks;
 using api.Models;
 using api.Models.Entity.NormalDB;
 using api.Models.Respone;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace api.Services
 {
     public interface IParkingRecordServices
     {
-        IEnumerable<ParkingRecordResponseDtoDetailed> GetParkingRecords(int userID, int recordsPerPage, int page);
-        ParkingRecordResponseDtoDetailed GetParkingRecord(int userID, int sessionID);
+        Task<ICollection<ParkingRecordResponseDtoDetailed>> GetParkingRecordsAsync(int userID, int recordsPerPage, int page);
+        Task<ParkingRecordResponseDtoDetailed> GetParkingRecord(int userID, int sessionID);
     }
 
     public class ParkingRecordServices : IParkingRecordServices
@@ -21,22 +23,22 @@ namespace api.Services
         {
             this.normalDataBaseContext = normalDataBaseContext;
         }
-        public IEnumerable<ParkingRecordResponseDtoDetailed> GetParkingRecords(int userID, int recordsPerPage, int page)
+        public async Task<ICollection<ParkingRecordResponseDtoDetailed>> GetParkingRecordsAsync(int userID, int recordsPerPage, int page)
         {
-            IEnumerable<ParkingRecordResponseDtoDetailed> parkingRecordsDetailed = [];
+            ICollection<ParkingRecordResponseDtoDetailed> parkingRecordsDetailed = [];
 
-            IEnumerable<UserVehicles> userVehicles = normalDataBaseContext.UserVehicles.Where(uv => uv.userID == userID);
+            IEnumerable<ParkingRecordSessions> parkingRecordSessions = await normalDataBaseContext.ParkingRecordSessions
+                .Where(prs => normalDataBaseContext.UserVehicles.Any(uv => uv.vehicleLicense == prs.vehicleLicense && uv.userID == userID))
+                .OrderByDescending(prs => prs.CreatedAt)
+                .Include(p => p.parkingLot)
+                .Skip(recordsPerPage * (page - 1))
+                .Take(recordsPerPage)
+                .ToListAsync();
 
-            if (userVehicles.Count() == 0)
+            if (parkingRecordSessions.Count() == 0 || parkingRecordSessions == null)
             {
                 return parkingRecordsDetailed;
             }
-
-            IEnumerable<ParkingRecordSessions> parkingRecordSessions =
-                normalDataBaseContext.ParkingRecordSessions.Where(prs => userVehicles.Any(uv => uv.vehicleLicense == prs.vehicleLicense))
-                .OrderByDescending(prs => prs.CreatedAt)
-                .Skip(recordsPerPage * (page - 1))
-                .Take(recordsPerPage);
 
             foreach (ParkingRecordSessions parkingRecordSession in parkingRecordSessions)
             {
@@ -50,7 +52,13 @@ namespace api.Services
                     records = []
                 };
 
-                IEnumerable<ParkingRecords> parkingRecords = normalDataBaseContext.ParkingRecords.Where(pr => pr.sessionID == parkingRecordSession.sessionID);
+                IEnumerable<ParkingRecords> parkingRecords = await normalDataBaseContext.ParkingRecords
+                    .Where(pr => pr.sessionID == parkingRecordSession.sessionID)
+                    .Include(p => p.parkingLot)
+                    .Include(p => p.reservation)
+                    .Include(p => p.payment)
+                    .ToListAsync();
+
                 foreach (ParkingRecords parkingRecord in parkingRecords)
                 {
                     ParkingRecordResponseDtoDetailedHistory parkingRecordResponseDtoDetailedHistory = new ParkingRecordResponseDtoDetailedHistory
@@ -74,17 +82,17 @@ namespace api.Services
                         spaceType = parkingRecord.spaceType.ToString(),
                         paymentStatus = parkingRecord.payment.paymentStatus.ToString()
                     };
-                    parkingRecordResponseDto.records.Append(parkingRecordResponseDtoDetailedHistory);
+                    parkingRecordResponseDto.records.Add(parkingRecordResponseDtoDetailedHistory);
 
                 }
-                parkingRecordsDetailed.Append(parkingRecordResponseDto);
+                parkingRecordsDetailed.Add(parkingRecordResponseDto);
             }
 
 
             return parkingRecordsDetailed;
         }
 
-        public ParkingRecordResponseDtoDetailed GetParkingRecord(int userID, int sessionID)
+        public async Task<ParkingRecordResponseDtoDetailed> GetParkingRecord(int userID, int sessionID)
         {
             ParkingRecordSessions? parkingRecordSession = normalDataBaseContext.ParkingRecordSessions.FirstOrDefault(prs => prs.sessionID == sessionID);
 
@@ -99,7 +107,11 @@ namespace api.Services
                 return null;
             }
 
-            IEnumerable<ParkingRecords> parkingRecords = normalDataBaseContext.ParkingRecords.Where(pr => pr.sessionID == sessionID);
+            IEnumerable<ParkingRecords> parkingRecords = await normalDataBaseContext.ParkingRecords.Where(pr => pr.sessionID == sessionID)
+                .Include(p => p.parkingLot)
+                .Include(p => p.reservation)
+                .Include(p => p.payment)
+                .ToListAsync();
 
             ParkingRecordResponseDtoDetailed parkingRecordResponseDto = new ParkingRecordResponseDtoDetailed
             {
@@ -134,7 +146,7 @@ namespace api.Services
                     spaceType = parkingRecord.spaceType.ToString(),
                     paymentStatus = parkingRecord.payment.paymentStatus.ToString()
                 };
-                parkingRecordResponseDto.records.Append(parkingRecordResponseDtoDetailedHistory);
+                parkingRecordResponseDto.records.Add(parkingRecordResponseDtoDetailedHistory);
             }
             return parkingRecordResponseDto;
         }

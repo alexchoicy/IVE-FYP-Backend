@@ -50,6 +50,14 @@ namespace api.Services
                     gateHandler = new ElectricEntryGatehandler(serviceScopeFactory);
                     gateHandler.HandleGateEvent(lprReceiveModel);
                     break;
+                case GateType.OUT_Electronic:
+                    gateHandler = new ElectricExitGateHandler(serviceScopeFactory);
+                    gateHandler.HandleGateEvent(lprReceiveModel);
+                    break;
+                case GateType.OUT:
+                    gateHandler = new MainExitGateHandler(serviceScopeFactory);
+                    gateHandler.HandleGateEvent(lprReceiveModel);
+                    break;
             }
         }
     }

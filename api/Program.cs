@@ -124,6 +124,7 @@ builder.Services.AddScoped<IParkingLotServices, ParkingLotServices>();
 builder.Services.AddScoped<IVehicleServices, VehicleServices>();
 builder.Services.AddScoped<IReservationServices, ReservationServices>();
 builder.Services.AddScoped<IPaymentServices, PaymentServices>();
+builder.Services.AddScoped<IParkingRecordServices, ParkingRecordServices>();
 
 builder.Services.AddAuthentication(options =>
 {

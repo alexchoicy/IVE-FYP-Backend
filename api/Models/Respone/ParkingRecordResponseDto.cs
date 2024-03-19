@@ -27,7 +27,7 @@ namespace api.Models.Respone
         public required string lotName { get; set; }
         public required string vehicleLicense { get; set; }
         public decimal? totalPrice { get; set; }
-        public required IEnumerable<ParkingRecordResponseDtoDetailedHistory> records { get; set; }
+        public required ICollection<ParkingRecordResponseDtoDetailedHistory> records { get; set; }
     }
 
     public class ParkingRecordResponseDtoDetailedHistory

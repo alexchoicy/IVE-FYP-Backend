@@ -26,7 +26,8 @@ namespace api.Services.Gates
                 Console.WriteLine("Parking lot not found");
                 return;
             }
-
+            parkingLot.avaiableElectricSpaces++;
+            normalDataBaseContext.SaveChanges();
             if (vehicle == null)
             {
                 HandleWalkin(normalDataBaseContext, lprReceiveModel, parkingLot);
@@ -57,7 +58,6 @@ namespace api.Services.Gates
             ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
 
             // Console.WriteLine("Parking Records: " + JsonConvert.SerializeObject(normalDataBaseContext.ParkingRecords.Where(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null && x.spaceType == SpaceType.REGULAR).ToList()));
-
             if (parkingRecords == null)
             {
                 Console.WriteLine("The vehicle not exit yet");
@@ -86,6 +86,8 @@ namespace api.Services.Gates
 
             CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.REGULAR, vehicles);
 
+            parkingLot.avaiableRegularSpaces--;
+            normalDataBaseContext.SaveChanges();
         }
         protected override void HandleReservation(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicles, Reservations reservations)
         {

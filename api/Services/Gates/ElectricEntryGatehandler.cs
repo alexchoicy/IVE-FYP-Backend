@@ -28,6 +28,9 @@ namespace api.Services.Gates
                 return;
             }
 
+            parkingLot.avaiableRegularSpaces++;
+            normalDataBaseContext.SaveChanges();
+
             if (vehicle == null)
             {
                 HandleWalkin(normalDataBaseContext, lprReceiveModel, parkingLot);
@@ -64,7 +67,7 @@ namespace api.Services.Gates
                 Console.WriteLine("The vehicle not exit yet");
                 return;
             }
-
+            parkingLot.avaiableElectricSpaces--;
             parkingRecords.exitTime = DateTime.Now;
             normalDataBaseContext.ParkingRecords.Update(parkingRecords);
             normalDataBaseContext.SaveChanges();

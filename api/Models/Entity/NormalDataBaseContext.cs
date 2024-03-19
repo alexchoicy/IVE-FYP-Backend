@@ -48,6 +48,11 @@ namespace api.Models
                 .Property(e => e.paymentStatus)
                 .HasConversion<string>();
 
+            modelBuilder.Entity<ParkingRecordSessions>()
+                .HasOne(p => p.parkingLot)
+                .WithMany()
+                .HasForeignKey(p => p.lotID);
+
         }
     }
 }
