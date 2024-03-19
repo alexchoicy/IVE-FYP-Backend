@@ -16,7 +16,7 @@ namespace api.Services.Gates
         {
         }
 
-        public override void HandleGateEvent(LprReceiveModel lprReceiveModel)
+        public override async void HandleGateEvent(LprReceiveModel lprReceiveModel)
         {
             NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(serviceScopeFactory.CreateScope());
             UserVehicles? vehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
@@ -29,7 +29,7 @@ namespace api.Services.Gates
             }
 
             parkingLot.avaiableRegularSpaces++;
-            normalDataBaseContext.SaveChanges();
+            await normalDataBaseContext.SaveChangesAsync();
 
             if (vehicle == null)
             {
@@ -56,7 +56,7 @@ namespace api.Services.Gates
                 HandleWalkin(normalDataBaseContext, lprReceiveModel, parkingLot, vehicle);
             }
         }
-        protected override void HandleWalkin(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicles = null)
+        protected override async void HandleWalkin(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicles = null)
         {
             ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
 
@@ -70,7 +70,7 @@ namespace api.Services.Gates
             parkingLot.avaiableElectricSpaces--;
             parkingRecords.exitTime = DateTime.Now;
             normalDataBaseContext.ParkingRecords.Update(parkingRecords);
-            normalDataBaseContext.SaveChanges();
+            await normalDataBaseContext.SaveChangesAsync();
 
             //Calculate the last record of the vehicle
             decimal price = CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.REGULAR, parkingRecords);
@@ -83,7 +83,7 @@ namespace api.Services.Gates
                 lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
                 lastPayment.paymentTime = DateTime.Now;
                 normalDataBaseContext.Payments.Update(lastPayment);
-                normalDataBaseContext.SaveChanges();
+                await normalDataBaseContext.SaveChangesAsync();
             }
 
             int sessionID = parkingRecords.sessionID;
@@ -91,13 +91,13 @@ namespace api.Services.Gates
             CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.ELECTRIC, vehicles);
 
         }
-        protected override void HandleReservation(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicles, Reservations reservations)
+        protected override async void HandleReservation(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicles, Reservations reservations)
         {
             //Calculate the last record of the vehicle
             ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
 
             parkingRecords.exitTime = DateTime.Now;
-            normalDataBaseContext.SaveChanges();
+            await normalDataBaseContext.SaveChangesAsync();
 
             decimal price = CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.REGULAR, parkingRecords);
 
@@ -109,7 +109,7 @@ namespace api.Services.Gates
                 lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
                 lastPayment.paymentTime = DateTime.Now;
                 normalDataBaseContext.Payments.Update(lastPayment);
-                normalDataBaseContext.SaveChanges();
+                await normalDataBaseContext.SaveChangesAsync();
             }
 
             int sessionID = parkingRecords.sessionID;

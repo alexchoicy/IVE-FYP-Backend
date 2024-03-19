@@ -15,18 +15,18 @@ namespace api.Services.Gates
         {
         }
 
-        public override void HandleGateEvent(LprReceiveModel lprReceiveModel)
+        public override async void HandleGateEvent(LprReceiveModel lprReceiveModel)
         {
             NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(serviceScopeFactory.CreateScope());
             UserVehicles? vehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
             ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
             parkingLot.avaiableRegularSpaces++;
-            normalDataBaseContext.SaveChanges();
+            await normalDataBaseContext.SaveChangesAsync();
 
             HandleFinalExit(normalDataBaseContext, lprReceiveModel, parkingLot, vehicle);
         }
 
-        private void HandleFinalExit(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicles = null)
+        private async void HandleFinalExit(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicles = null)
         {
             ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
 
@@ -38,7 +38,7 @@ namespace api.Services.Gates
 
             parkingRecords.exitTime = DateTime.Now;
             normalDataBaseContext.ParkingRecords.Update(parkingRecords);
-            normalDataBaseContext.SaveChanges();
+            await normalDataBaseContext.SaveChangesAsync();
 
             decimal price = CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.REGULAR, parkingRecords);
 
@@ -50,7 +50,7 @@ namespace api.Services.Gates
                 lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
                 lastPayment.paymentTime = DateTime.Now;
                 normalDataBaseContext.Payments.Update(lastPayment);
-                normalDataBaseContext.SaveChanges();
+                await normalDataBaseContext.SaveChangesAsync();
             }
 
             if (lastPayment.paymentStatus == PaymentStatus.Completed && lastPayment.paymentTime.Value.AddMinutes(GracePeriodForPayment) < DateTime.Now)
@@ -78,7 +78,7 @@ namespace api.Services.Gates
             ParkingRecordSessions parkingRecordSessions = normalDataBaseContext.ParkingRecordSessions.FirstOrDefault(x => x.sessionID == parkingRecords.sessionID);
             parkingRecordSessions.totalPrice = totalAmount;
             normalDataBaseContext.ParkingRecordSessions.Update(parkingRecordSessions);
-            normalDataBaseContext.SaveChanges();
+            await normalDataBaseContext.SaveChangesAsync();
 
             if (isAllCompleted)
             {
