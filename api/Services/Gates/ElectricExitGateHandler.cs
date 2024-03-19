@@ -15,104 +15,113 @@ namespace api.Services.Gates
         {
         }
 
-        public override async void HandleGateEvent(LprReceiveModel lprReceiveModel)
+        public override async Task HandleGateEvent(LprReceiveModel lprReceiveModel)
         {
-            NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(serviceScopeFactory.CreateScope());
-            UserVehicles? vehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
-            ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
+            using (var scope = serviceScopeFactory.CreateScope())
+            {
+                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope); UserVehicles? vehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
+                ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
 
-            if (parkingLot == null)
-            {
-                Console.WriteLine("Parking lot not found");
-                return;
-            }
-            parkingLot.avaiableElectricSpaces++;
-            await normalDataBaseContext.SaveChangesAsync();
-            if (vehicle == null)
-            {
-                HandleWalkin(normalDataBaseContext, lprReceiveModel, parkingLot);
-                return;
-            }
+                if (parkingLot == null)
+                {
+                    Console.WriteLine("Parking lot not found");
+                    return;
+                }
+                parkingLot.avaiableElectricSpaces++;
+                await normalDataBaseContext.SaveChangesAsync();
+                if (vehicle == null)
+                {
+                    await HandleWalkin(lprReceiveModel, parkingLot);
+                    return;
+                }
 
-            //this only check if it is Electric space
-            Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(
-                x => x.vehicleID == vehicle.vehicleID &&
-                x.startTime.AddMinutes(maxEarlyTime) <= DateTime.Now &&
-                x.startTime.AddMinutes(maxLateTime) >= DateTime.Now &&
-                x.reservationStatus == ReservationStatus.PAID &&
-                x.spaceType == SpaceType.REGULAR &&
-                x.lotID == lprReceiveModel.lotID
-                );
+                //this only check if it is Electric space
+                Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(
+                    x => x.vehicleID == vehicle.vehicleID &&
+                    x.startTime.AddMinutes(maxEarlyTime) <= DateTime.Now &&
+                    x.startTime.AddMinutes(maxLateTime) >= DateTime.Now &&
+                    x.reservationStatus == ReservationStatus.PAID &&
+                    x.spaceType == SpaceType.REGULAR &&
+                    x.lotID == lprReceiveModel.lotID
+                    );
 
-            if (reservations != null)
-            {
-                HandleReservation(normalDataBaseContext, lprReceiveModel, parkingLot, vehicle, reservations);
-            }
-            else
-            {
-                HandleWalkin(normalDataBaseContext, lprReceiveModel, parkingLot, vehicle);
+                if (reservations != null)
+                {
+                    await HandleReservation(lprReceiveModel, parkingLot, vehicle, reservations);
+                }
+                else
+                {
+                    await HandleWalkin(lprReceiveModel, parkingLot, vehicle);
+                }
             }
         }
-        protected override async void HandleWalkin(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicles = null)
+        protected override async Task HandleWalkin(LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicles = null)
         {
-            ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
 
-            // Console.WriteLine("Parking Records: " + JsonConvert.SerializeObject(normalDataBaseContext.ParkingRecords.Where(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null && x.spaceType == SpaceType.REGULAR).ToList()));
-            if (parkingRecords == null)
+            using (var scope = serviceScopeFactory.CreateScope())
             {
-                Console.WriteLine("The vehicle not exit yet");
-                return;
-            }
+                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope); ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
 
-            parkingRecords.exitTime = DateTime.Now;
-            normalDataBaseContext.ParkingRecords.Update(parkingRecords);
-            await normalDataBaseContext.SaveChangesAsync();
+                // Console.WriteLine("Parking Records: " + JsonConvert.SerializeObject(normalDataBaseContext.ParkingRecords.Where(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null && x.spaceType == SpaceType.REGULAR).ToList()));
+                if (parkingRecords == null)
+                {
+                    Console.WriteLine("The vehicle not exit yet");
+                    return;
+                }
 
-            //Calculate the last record of the vehicle
-            decimal price = CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.ELECTRIC, parkingRecords);
+                parkingRecords.exitTime = DateTime.Now;
+                normalDataBaseContext.ParkingRecords.Update(parkingRecords);
+                await normalDataBaseContext.SaveChangesAsync();
 
-            Payments lastPayment = normalDataBaseContext.Payments.FirstOrDefault(x => x.paymentID == parkingRecords.paymentID);
+                //Calculate the last record of the vehicle
+                decimal price = await CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.ELECTRIC, parkingRecords);
 
-            if (lastPayment.paymentStatus == PaymentStatus.Generated)
-            {
-                lastPayment.amount = price;
-                lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
-                lastPayment.paymentTime = DateTime.Now;
-                normalDataBaseContext.Payments.Update(lastPayment);
+                Payments lastPayment = normalDataBaseContext.Payments.FirstOrDefault(x => x.paymentID == parkingRecords.paymentID);
+
+                if (lastPayment.paymentStatus == PaymentStatus.Generated)
+                {
+                    lastPayment.amount = price;
+                    lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
+                    lastPayment.paymentTime = DateTime.Now;
+                    normalDataBaseContext.Payments.Update(lastPayment);
+                    await normalDataBaseContext.SaveChangesAsync();
+                }
+
+                int sessionID = parkingRecords.sessionID;
+
+                CreatePaymentRecord(lprReceiveModel, sessionID, SpaceType.REGULAR, vehicles);
+
+                parkingLot.avaiableRegularSpaces--;
                 await normalDataBaseContext.SaveChangesAsync();
             }
-
-            int sessionID = parkingRecords.sessionID;
-
-            CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.REGULAR, vehicles);
-
-            parkingLot.avaiableRegularSpaces--;
-            await normalDataBaseContext.SaveChangesAsync();
         }
-        protected override void HandleReservation(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicles, Reservations reservations)
+        protected override async Task HandleReservation(LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicles, Reservations reservations)
         {
-            //Calculate the last record of the vehicle
-            ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
-
-            parkingRecords.exitTime = DateTime.Now;
-            normalDataBaseContext.SaveChanges();
-
-            decimal price = CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.ELECTRIC, parkingRecords);
-
-            Payments lastPayment = normalDataBaseContext.Payments.FirstOrDefault(x => x.paymentID == parkingRecords.paymentID);
-
-            if (lastPayment.paymentStatus == PaymentStatus.Generated)
+            using (var scope = serviceScopeFactory.CreateScope())
             {
-                lastPayment.amount = price;
-                lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
-                lastPayment.paymentTime = DateTime.Now;
-                normalDataBaseContext.Payments.Update(lastPayment);
-                normalDataBaseContext.SaveChanges();
+                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope);            //Calculate the last record of the vehicle
+                ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
+
+                parkingRecords.exitTime = DateTime.Now;
+                await normalDataBaseContext.SaveChangesAsync();
+
+                decimal price = await CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.ELECTRIC, parkingRecords);
+
+                Payments lastPayment = normalDataBaseContext.Payments.FirstOrDefault(x => x.paymentID == parkingRecords.paymentID);
+
+                if (lastPayment.paymentStatus == PaymentStatus.Generated)
+                {
+                    lastPayment.amount = price;
+                    lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
+                    lastPayment.paymentTime = DateTime.Now;
+                    normalDataBaseContext.Payments.Update(lastPayment);
+                    await normalDataBaseContext.SaveChangesAsync();
+                }
+
+                int sessionID = parkingRecords.sessionID;
+
+                CreatePaymentRecord(lprReceiveModel, sessionID, SpaceType.REGULAR, vehicles, reservations);
             }
-
-            int sessionID = parkingRecords.sessionID;
-
-            CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.REGULAR, vehicles, reservations);
         }
     }
 }

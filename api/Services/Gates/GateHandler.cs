@@ -27,51 +27,49 @@ namespace api.Services.Gates
             return scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
         }
 
-        public abstract void HandleGateEvent(LprReceiveModel lprReceiveModel);
+        public abstract Task HandleGateEvent(LprReceiveModel lprReceiveModel);
 
-        protected abstract void HandleWalkin(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicles = null);
+        protected abstract Task HandleWalkin(LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicles = null);
 
-        protected abstract void HandleReservation(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicles, Reservations reservations);
+        protected abstract Task HandleReservation(LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicles, Reservations reservations);
 
-        protected async void CreatePaymentRecord(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, int sessionID, SpaceType spaceType, UserVehicles? vehicles = null, Reservations? reservations = null)
+        protected async void CreatePaymentRecord(LprReceiveModel lprReceiveModel, int sessionID, SpaceType spaceType, UserVehicles? vehicles = null, Reservations? reservations = null)
         {
-            Payments payment = new Payments
+            using (var scope = serviceScopeFactory.CreateScope())
             {
-                paymentType = PaymentType.ParkingFee,
-                userID = vehicles == null ? 0 : vehicles.userID,
-                amount = -1,
-                paymentStatus = PaymentStatus.Generated,
-            };
+                NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
+                Payments payment = new Payments
+                {
+                    paymentType = PaymentType.ParkingFee,
+                    userID = vehicles == null ? 0 : vehicles.userID,
+                    amount = -1,
+                    paymentStatus = PaymentStatus.Generated,
+                };
 
-            normalDataBaseContext.Payments.Add(payment);
-            await normalDataBaseContext.SaveChangesAsync();
+                normalDataBaseContext.Payments.Add(payment);
+                await normalDataBaseContext.SaveChangesAsync();
 
-            ParkingRecords parkingRecord = new ParkingRecords
-            {
-                lotID = lprReceiveModel.lotID,
-                vehicleLicense = lprReceiveModel.vehicleLicense,
-                spaceType = spaceType,
-                entryTime = DateTime.Now,
-                paymentID = payment.paymentID,
-                sessionID = sessionID,
-                reservationID = reservations == null ? null : reservations.reservationID,
-            };
+                ParkingRecords parkingRecord = new ParkingRecords
+                {
+                    lotID = lprReceiveModel.lotID,
+                    vehicleLicense = lprReceiveModel.vehicleLicense,
+                    spaceType = spaceType,
+                    entryTime = DateTime.Now,
+                    paymentID = payment.paymentID,
+                    sessionID = sessionID,
+                    reservationID = reservations == null ? null : reservations.reservationID,
+                };
 
-            normalDataBaseContext.ParkingRecords.Add(parkingRecord);
-            await normalDataBaseContext.SaveChangesAsync();
+                normalDataBaseContext.ParkingRecords.Add(parkingRecord);
+                await normalDataBaseContext.SaveChangesAsync();
 
-            payment.relatedID = parkingRecord.parkingRecordID;
-            await normalDataBaseContext.SaveChangesAsync();
+                payment.relatedID = parkingRecord.parkingRecordID;
+                await normalDataBaseContext.SaveChangesAsync();
+            }
         }
 
-        protected int createSessionID(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel)
+        protected async Task<int> createSessionID(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel)
         {
-            // int sessionID = normalDataBaseContext.ParkingRecords
-            //     .Where(x => x.vehicleLicense == lprReceiveModel.vehicleLicense)
-            //     .Max(parkingrecord => (int?)parkingrecord.sessionID) ?? 0;
-
-            // sessionID++;
-
             ParkingRecordSessions parkingRecordSessions = new ParkingRecordSessions
             {
                 vehicleLicense = lprReceiveModel.vehicleLicense,
@@ -80,7 +78,7 @@ namespace api.Services.Gates
             };
 
             normalDataBaseContext.ParkingRecordSessions.Add(parkingRecordSessions);
-            normalDataBaseContext.SaveChanges();
+            await normalDataBaseContext.SaveChangesAsync();
 
             return parkingRecordSessions.sessionID;
         }
@@ -102,7 +100,7 @@ namespace api.Services.Gates
 
 
         //refacter this thank you lol, what 7 i doing
-        protected decimal CalculateLastRecord(NormalDataBaseContext normalDataBaseContext, ParkingLots parkingLot, SpaceType spaceType, ParkingRecords parkingRecords)
+        protected async Task<decimal> CalculateLastRecord(NormalDataBaseContext normalDataBaseContext, ParkingLots parkingLot, SpaceType spaceType, ParkingRecords parkingRecords)
         {
             if (parkingRecords.exitTime - parkingRecords.entryTime <= TimeSpan.FromMinutes(GracePeriodForFree))
             {
@@ -118,7 +116,7 @@ namespace api.Services.Gates
             {
                 Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(x => x.reservationID == parkingRecords.reservationID);
                 reservations.reservationStatus = ReservationStatus.COMPLETED;
-                normalDataBaseContext.SaveChanges();
+                await normalDataBaseContext.SaveChangesAsync();
                 return GetLastRecordPrices(lotPrices, parkingRecords, reservations, parkingLot.reservedDiscount);
             }
         }
@@ -131,20 +129,27 @@ namespace api.Services.Gates
             if (totalMinutes > GracePeriodForPayment)
             {
                 totalHours++;
+                Console.WriteLine("Add 1 hour");
             }
-
+            Console.WriteLine("Total Hours: " + totalHours);
+            Console.WriteLine("Total Minutes: " + totalMinutes);
             if (reservation == null)
             {
+                Console.WriteLine("1) No reservation");
                 price = CalculatePriceWithoutReservation(totalHours, lotPrices);
             }
             else if (DateTime.Now <= reservation.endTime.AddMinutes(GracePeriodForPayment))
             {
+                Console.WriteLine("2) Reservation is not expired");
                 price = CalculatePriceWithReservation(totalHours, lotPrices, discount);
             }
             else
             {
-                int totalReservationHours = (int)(reservation.endTime - parkingRecords.entryTime).TotalHours;
+                int totalReservationHours = (int)(reservation.endTime - reservation.startTime).TotalHours;
                 int totalHoursAfterReservation = totalHours - totalReservationHours;
+                Console.WriteLine("3) Reservation is expired");
+                Console.WriteLine("Total Reservation Hours: " + totalReservationHours);
+                Console.WriteLine("Total Hours After Reservation: " + totalHoursAfterReservation);
                 price = CalculatePriceWithReservation(totalReservationHours, lotPrices, discount);
                 price += CalculatePriceWithoutReservation(totalHoursAfterReservation, lotPrices);
             }

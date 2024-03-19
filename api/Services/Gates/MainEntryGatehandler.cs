@@ -15,76 +15,84 @@ namespace api.Services.Gates
         public MainEntryGatehandler(IServiceScopeFactory serviceScopeFactory) : base(serviceScopeFactory)
         {
         }
-        public override void HandleGateEvent(LprReceiveModel lprReceiveModel)
+        public override async Task HandleGateEvent(LprReceiveModel lprReceiveModel)
         {
-            NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(serviceScopeFactory.CreateScope());
-            UserVehicles? vehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
-            Console.WriteLine("Vehicle: " + vehicle.vehicleID);
-            ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
-
-            if (parkingLot == null)
+            using (var scope = serviceScopeFactory.CreateScope())
             {
-                Console.WriteLine("Parking lot not found");
-                return;
-            }
+                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope); UserVehicles? vehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
+                Console.WriteLine("Vehicle: " + vehicle.vehicleID);
+                ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
 
-            //not found = not register
-            if (vehicle == null)
-            {
-                HandleWalkin(normalDataBaseContext, lprReceiveModel, parkingLot);
-                return;
-            }
+                if (parkingLot == null)
+                {
+                    Console.WriteLine("Parking lot not found");
+                    return;
+                }
 
-            //check if the vehicle is in reservation even regular or electric
-            //allow 5 minutes early and 30 minutes late
-            //allow get in even the space if full for walkin
-            Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(
-                x => x.vehicleID == vehicle.vehicleID &&
-                x.startTime.AddMinutes(maxEarlyTime) <= DateTime.Now &&
-                x.startTime.AddMinutes(maxLateTime) >= DateTime.Now &&
-                x.reservationStatus == ReservationStatus.PAID &&
-                x.lotID == lprReceiveModel.lotID
-                );
-            Console.WriteLine(JsonConvert.SerializeObject(normalDataBaseContext.Reservations.Where(x => x.vehicleID == vehicle.vehicleID).ToList()));
+                //not found = not register
+                if (vehicle == null)
+                {
+                    await HandleWalkin(lprReceiveModel, parkingLot);
+                    return;
+                }
 
-            if (reservations != null)
-            {
-                HandleReservation(normalDataBaseContext, lprReceiveModel, parkingLot, vehicle, reservations);
-            }
-            else
-            {
-                HandleWalkin(normalDataBaseContext, lprReceiveModel, parkingLot, vehicle);
+                //check if the vehicle is in reservation even regular or electric
+                //allow 5 minutes early and 30 minutes late
+                //allow get in even the space if full for walkin
+                Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(
+                    x => x.vehicleID == vehicle.vehicleID &&
+                    x.startTime.AddMinutes(maxEarlyTime) <= DateTime.Now &&
+                    x.startTime.AddMinutes(maxLateTime) >= DateTime.Now &&
+                    x.reservationStatus == ReservationStatus.PAID &&
+                    x.lotID == lprReceiveModel.lotID
+                    );
+                Console.WriteLine(JsonConvert.SerializeObject(normalDataBaseContext.Reservations.Where(x => x.vehicleID == vehicle.vehicleID).ToList()));
+
+                if (reservations != null)
+                {
+                    await HandleReservation(lprReceiveModel, parkingLot, vehicle, reservations);
+                }
+                else
+                {
+                    await HandleWalkin(lprReceiveModel, parkingLot, vehicle);
+                }
             }
         }
 
-        protected override async void HandleWalkin(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicle = null)
+        protected override async Task HandleWalkin(LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicle = null)
         {
-            if (parkingLot.avaiableRegularSpaces < parkingLot.reservableOnlyRegularSpaces)
+            using (var scope = serviceScopeFactory.CreateScope())
             {
-                Console.WriteLine("Parking lot is full");
-                return;
-            }
+                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope); if (parkingLot.avaiableRegularSpaces < parkingLot.reservableOnlyRegularSpaces)
+                {
+                    Console.WriteLine("Parking lot is full");
+                    return;
+                }
 
-            parkingLot.avaiableRegularSpaces--;
-            await normalDataBaseContext.SaveChangesAsync();
-
-            int sessionID = createSessionID(normalDataBaseContext, lprReceiveModel);
-
-            CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.REGULAR, vehicle);
-
-        }
-
-        protected override async void HandleReservation(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicle, Reservations reservations)
-        {
-            if (reservations.spaceType == SpaceType.ELECTRIC)
-            {
                 parkingLot.avaiableRegularSpaces--;
                 await normalDataBaseContext.SaveChangesAsync();
+
+                int sessionID = await createSessionID(normalDataBaseContext, lprReceiveModel);
+
+                CreatePaymentRecord(lprReceiveModel, sessionID, SpaceType.REGULAR, vehicle);
+
             }
+        }
 
-            int sessionID = createSessionID(normalDataBaseContext, lprReceiveModel);
+        protected override async Task HandleReservation(LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicle, Reservations reservations)
+        {
+            using (var scope = serviceScopeFactory.CreateScope())
+            {
+                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope); if (reservations.spaceType == SpaceType.ELECTRIC)
+                {
+                    parkingLot.avaiableRegularSpaces--;
+                    await normalDataBaseContext.SaveChangesAsync();
+                }
 
-            CreatePaymentRecord(normalDataBaseContext, lprReceiveModel, sessionID, SpaceType.REGULAR, vehicle, reservations.spaceType == SpaceType.REGULAR ? reservations : null);
+                int sessionID = await createSessionID(normalDataBaseContext, lprReceiveModel);
+
+                CreatePaymentRecord(lprReceiveModel, sessionID, SpaceType.REGULAR, vehicle, reservations.spaceType == SpaceType.REGULAR ? reservations : null);
+            }
         }
     }
 }
