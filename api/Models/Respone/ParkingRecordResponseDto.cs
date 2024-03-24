@@ -26,6 +26,8 @@ namespace api.Models.Respone
         public required int lotID { get; set; }
         public required string lotName { get; set; }
         public required string vehicleLicense { get; set; }
+        public required DateTime entryTime { get; set; }
+        public DateTime? exitTime { get; set; }
         public decimal? totalPrice { get; set; }
         public required ICollection<ParkingRecordResponseDtoDetailedHistory> records { get; set; }
     }

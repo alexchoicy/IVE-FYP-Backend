@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Models.Respone;
 using api.Services;
+using api.utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -35,7 +36,7 @@ namespace api.Controllers
             recordsPerPage = recordsPerPage ?? 15;
             page = page ?? 1;
 
-            IEnumerable<ParkingRecordResponseDtoDetailed> records = await parkingRecordServices.GetParkingRecordsAsync(userid, recordsPerPage.Value, page.Value);
+            PagedResponse<ICollection<ParkingRecordResponseDtoDetailed>> records = await parkingRecordServices.GetParkingRecordsAsync(userid, recordsPerPage.Value, page.Value);
             Console.WriteLine(JsonConvert.SerializeObject(records));
             return Ok(records);
         }

@@ -17,9 +17,11 @@ namespace api.Controllers
     {
 
         private readonly IParkingLotServices parkingLotServices;
-        public ParkingLotsController(IParkingLotServices parkingLotServices)
+        private readonly IParkingRecordServices parkingRecordServices;
+        public ParkingLotsController(IParkingLotServices parkingLotServices, IParkingRecordServices parkingRecordServices)
         {
             this.parkingLotServices = parkingLotServices;
+            this.parkingRecordServices = parkingRecordServices;
         }
 
 
@@ -144,6 +146,24 @@ namespace api.Controllers
             catch (RequestInvalidException ex)
             {
                 return BadRequest(ex);
+            }
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpGet("{id}/parkingrecords")]
+        public async Task<IActionResult> GetParkingRecords(int id, [FromQuery] int? page, [FromQuery] int? recordsPerPage)
+        {
+            try
+            {
+                page ??= 1;
+                recordsPerPage ??= 10;
+                Console.WriteLine("lotID: " + id + " recordsPerPage: " + recordsPerPage + " page: " + page);
+                PagedResponse<ICollection<ParkingRecordResponseDtoDetailed>> parkingRecords = await parkingRecordServices.GetParkingRecordsAdminAsync(id, (int)recordsPerPage, (int)page);
+                return Ok(parkingRecords);
+            }
+            catch (ParkingLotNotFoundException ex)
+            {
+                return NotFound(ex);
             }
         }
     }
