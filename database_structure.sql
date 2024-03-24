@@ -163,6 +163,7 @@ CREATE TABLE `ParkingRecordSessions` (
     `vehicleLicense` varchar(50) NOT NULL,
     `LotID` int NOT NULL,
     `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `EndedAt` timestamp DEFAULT NULL,
     `TotalPrice` decimal(10, 2) NOT NULL,
     
     PRIMARY KEY (`sessionID`),

@@ -81,6 +81,7 @@ namespace api.Services.Gates
 
                 ParkingRecordSessions parkingRecordSessions = normalDataBaseContext.ParkingRecordSessions.FirstOrDefault(x => x.sessionID == parkingRecords.sessionID);
                 parkingRecordSessions.totalPrice = totalAmount;
+                parkingRecordSessions.EndedAt = DateTime.Now;
                 normalDataBaseContext.ParkingRecordSessions.Update(parkingRecordSessions);
                 await normalDataBaseContext.SaveChangesAsync();
 

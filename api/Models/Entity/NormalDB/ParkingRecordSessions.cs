@@ -16,6 +16,7 @@ namespace api.Models.Entity.NormalDB
         public required int lotID { get; set; }
         public decimal? totalPrice { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? EndedAt { get; set; }
         public virtual ParkingLots parkingLot { get; set; }
     }
 }

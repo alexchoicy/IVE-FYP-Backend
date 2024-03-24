@@ -67,7 +67,7 @@ namespace api.Services
                     lotName = parkingRecordSession.parkingLot.name,
                     vehicleLicense = parkingRecordSession.vehicleLicense,
                     entryTime = parkingRecordSession.CreatedAt,
-                    exitTime = null,
+                    exitTime = parkingRecordSession.EndedAt,
                     totalPrice = parkingRecordSession.totalPrice,
                     records = []
                 };
@@ -148,7 +148,7 @@ namespace api.Services
                     lotName = parkingRecordSession.parkingLot.name,
                     vehicleLicense = parkingRecordSession.vehicleLicense,
                     entryTime = parkingRecordSession.CreatedAt,
-                    exitTime = null,
+                    exitTime = parkingRecordSession.EndedAt,
                     totalPrice = parkingRecordSession.totalPrice,
                     records = []
                 };
@@ -218,7 +218,7 @@ namespace api.Services
                 lotID = parkingRecordSession.lotID,
                 lotName = parkingRecordSession.parkingLot.name,
                 entryTime = parkingRecordSession.CreatedAt,
-                exitTime = null,
+                exitTime = parkingRecordSession.EndedAt,
                 vehicleLicense = parkingRecordSession.vehicleLicense,
                 totalPrice = parkingRecordSession.totalPrice,
                 records = []
@@ -273,7 +273,7 @@ namespace api.Services
                 lotID = parkingRecordSession.lotID,
                 lotName = parkingRecordSession.parkingLot.name,
                 entryTime = parkingRecordSession.CreatedAt,
-                exitTime = null,
+                exitTime = parkingRecordSession.EndedAt,
                 vehicleLicense = parkingRecordSession.vehicleLicense,
                 totalPrice = parkingRecordSession.totalPrice,
                 records = []
