@@ -20,10 +20,11 @@ namespace api.Services.Gates
         {
             using (var scope = serviceScopeFactory.CreateScope())
             {
+                lprReceiveModel.vehicleLicense = lprReceiveModel.vehicleLicense.ToUpper().Trim();
                 NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope);
                 UserVehicles? vehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
                 ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
-
+                Console.WriteLine("vechicle: " + JsonConvert.SerializeObject(vehicle));
                 if (parkingLot == null)
                 {
                     Console.WriteLine("Parking lot not found");
@@ -40,14 +41,7 @@ namespace api.Services.Gates
                 }
 
                 //this only check if it is Electric space
-                Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(
-                    x => x.vehicleID == vehicle.vehicleID &&
-                    x.startTime.AddMinutes(maxEarlyTime) <= DateTime.Now &&
-                    x.startTime.AddMinutes(maxLateTime) >= DateTime.Now &&
-                    x.reservationStatus == ReservationStatus.PAID &&
-                    x.spaceType == SpaceType.ELECTRIC &&
-                    x.lotID == lprReceiveModel.lotID
-                    );
+                Reservations? reservations = GetReservations(normalDataBaseContext, lprReceiveModel, vehicle, SpaceType.ELECTRIC);
 
                 if (reservations != null)
                 {
@@ -86,7 +80,7 @@ namespace api.Services.Gates
                 {
                     lastPayment.amount = price;
                     lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
-                    lastPayment.paymentTime = DateTime.Now;
+                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? DateTime.Now : null;
                     normalDataBaseContext.Payments.Update(lastPayment);
                     await normalDataBaseContext.SaveChangesAsync();
                 }

@@ -82,7 +82,7 @@ namespace api.Services.Gates
                 {
                     lastPayment.amount = price;
                     lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
-                    lastPayment.paymentTime = DateTime.Now;
+                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? DateTime.Now : null;
                     normalDataBaseContext.Payments.Update(lastPayment);
                     await normalDataBaseContext.SaveChangesAsync();
                 }

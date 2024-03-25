@@ -209,6 +209,8 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
+app.UseWebSockets();
+
 app.UseCors("AdminUIOrigin");
 
 app.Run();

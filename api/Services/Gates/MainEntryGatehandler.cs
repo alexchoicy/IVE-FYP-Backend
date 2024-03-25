@@ -39,14 +39,10 @@ namespace api.Services.Gates
                 //check if the vehicle is in reservation even regular or electric
                 //allow 5 minutes early and 30 minutes late
                 //allow get in even the space if full for walkin
-                Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(
-                    x => x.vehicleID == vehicle.vehicleID &&
-                    x.startTime.AddMinutes(maxEarlyTime) <= DateTime.Now &&
-                    x.startTime.AddMinutes(maxLateTime) >= DateTime.Now &&
-                    x.reservationStatus == ReservationStatus.PAID &&
-                    x.lotID == lprReceiveModel.lotID
-                    );
-                Console.WriteLine(JsonConvert.SerializeObject(normalDataBaseContext.Reservations.Where(x => x.vehicleID == vehicle.vehicleID).ToList()));
+                Reservations? reservations;
+                reservations = GetReservations(normalDataBaseContext, lprReceiveModel, vehicle, SpaceType.REGULAR);
+                reservations = reservations == null ? GetReservations(normalDataBaseContext, lprReceiveModel, vehicle, SpaceType.ELECTRIC) : reservations;
+
 
                 if (reservations != null)
                 {
@@ -83,7 +79,8 @@ namespace api.Services.Gates
         {
             using (var scope = serviceScopeFactory.CreateScope())
             {
-                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope); if (reservations.spaceType == SpaceType.ELECTRIC)
+                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope);
+                if (reservations.spaceType == SpaceType.ELECTRIC)
                 {
                     parkingLot.avaiableRegularSpaces--;
                     await normalDataBaseContext.SaveChangesAsync();

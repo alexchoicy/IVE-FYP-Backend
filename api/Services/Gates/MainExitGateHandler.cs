@@ -6,6 +6,8 @@ using api.Enums;
 using api.Models;
 using api.Models.Entity.NormalDB;
 using api.Models.LprData;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace api.Services.Gates
 {
@@ -52,19 +54,23 @@ namespace api.Services.Gates
                 {
                     lastPayment.amount = price;
                     lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
-                    lastPayment.paymentTime = DateTime.Now;
+                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? DateTime.Now : null;
                     normalDataBaseContext.Payments.Update(lastPayment);
                     await normalDataBaseContext.SaveChangesAsync();
                 }
 
-                if (lastPayment.paymentStatus == PaymentStatus.Completed && lastPayment.paymentTime.Value.AddMinutes(GracePeriodForPayment) < DateTime.Now)
+                if (lastPayment.paymentStatus == PaymentStatus.Completed && lastPayment.paymentTime != null && lastPayment.paymentTime.Value.AddMinutes(GracePeriodForPayment) < DateTime.Now)
                 {
                     //TODO: The vehicle has exceeded the grace period for payment, user will be charged for the extra hour
                     Console.WriteLine("The vehicle has exceeded the grace period for payment, user will be charged for the extra hour");
                     return;
                 }
 
-                IEnumerable<ParkingRecords> parkingRecordsList = normalDataBaseContext.ParkingRecords.Where(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.sessionID == parkingRecords.sessionID && x.lotID == parkingRecords.lotID);
+                IEnumerable<ParkingRecords> parkingRecordsList = await normalDataBaseContext.ParkingRecords.Where(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.sessionID == parkingRecords.sessionID && x.lotID == parkingRecords.lotID)
+                    .Include(x => x.payment)
+                    .ToListAsync();
+
+
 
                 decimal totalAmount = 0;
                 decimal unPayedAmount = 0;
@@ -78,8 +84,9 @@ namespace api.Services.Gates
                     }
                     totalAmount += record.payment.amount;
                 }
-
+                Console.WriteLine(parkingRecords.sessionID);
                 ParkingRecordSessions parkingRecordSessions = normalDataBaseContext.ParkingRecordSessions.FirstOrDefault(x => x.sessionID == parkingRecords.sessionID);
+                Console.WriteLine(JsonConvert.SerializeObject(parkingRecordSessions));
                 parkingRecordSessions.totalPrice = totalAmount;
                 parkingRecordSessions.EndedAt = DateTime.Now;
                 normalDataBaseContext.ParkingRecordSessions.Update(parkingRecordSessions);

@@ -53,6 +53,13 @@ namespace api.Models
                 .WithMany()
                 .HasForeignKey(p => p.lotID);
 
+            modelBuilder.Entity<Reservations>()
+                .Property(e => e.spaceType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Reservations>()
+                .Property(e => e.reservationStatus)
+                .HasConversion<string>();
         }
     }
 }

@@ -8,8 +8,8 @@ client.on("connect", () => {
         "LPR",
         `{
         "lotID": "1",
-        "gateType": "OUT_Electronic",
-        "vehicleLicense": "ALEXE"
+        "gateType": "IN",
+        "vehicleLicense": "ALEX"
     }`,
         {},
         function (err) {

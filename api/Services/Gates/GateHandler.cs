@@ -85,16 +85,25 @@ namespace api.Services.Gates
 
         protected Reservations? GetReservations(NormalDataBaseContext normalDataBaseContext, LprReceiveModel lprReceiveModel, UserVehicles vehicles, SpaceType spaceType)
         {
-            return normalDataBaseContext.Reservations.FirstOrDefault(
+            IEnumerable<Reservations> reservations = normalDataBaseContext.Reservations.Where(
                 x => x.vehicleID == vehicles.vehicleID &&
                 x.startTime.Date == DateTime.Now.Date &&
-                x.endTime.Date == DateTime.Now.Date &&
-                x.startTime.AddMinutes(maxEarlyTime) <= DateTime.Now &&
-                x.startTime.AddMinutes(maxLateTime) <= DateTime.Now &&
                 x.reservationStatus == ReservationStatus.PAID &&
                 x.spaceType == spaceType &&
                 x.lotID == lprReceiveModel.lotID
                 );
+
+            if (reservations.Count() == 0)
+            {
+                return null;
+            }
+
+            Reservations? validReservation = reservations.FirstOrDefault(
+                x => x.startTime.AddMinutes(-5) <= DateTime.Now && x.startTime.AddMinutes(30) >= DateTime.Now
+            );
+
+            return validReservation;
+
         }
 
 
@@ -145,6 +154,7 @@ namespace api.Services.Gates
             }
             else
             {
+                //int cast to round 
                 int totalReservationHours = (int)(reservation.endTime - reservation.startTime).TotalHours;
                 int totalHoursAfterReservation = totalHours - totalReservationHours;
                 Console.WriteLine("3) Reservation is expired");
