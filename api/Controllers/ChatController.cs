@@ -32,8 +32,29 @@ namespace api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateChatRoom()
         {
-            return Ok();
+            string token = HttpContext.Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+
+            (string userID, bool isAdmin) = ValidateTokenAndReturnID(token);
+
+            if (string.IsNullOrEmpty(userID))
+            {
+                return Unauthorized();
+            }
+            string roomKey = await chatServices.CreateChatRoom(int.Parse(userID));
+            return Ok(roomKey);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetChatRooms()
+        {
+            int count = chatServices.GetCurrentRoomCount();
+            return Ok(count);
+        }
+
         [Route("{chatRoomId}")]
         public async Task<IActionResult> GetChatRooms(string chatRoomId)
         {

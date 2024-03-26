@@ -173,12 +173,12 @@ CREATE TABLE `ParkingRecordSessions` (
 
 CREATE TABLE `Chats` (
     `ChatRoomID` varchar(255) NOT NULL,
-    `UserID` int NOT NULL,
+    `CustomerID` int NOT NULL,
     `ChatRoomStatus` varchar(50) NOT NULL,
     `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `EndedAt` timestamp,
     `History` json null,
     PRIMARY KEY (`ChatRoomID`),
-    FOREIGN KEY (`UserID`) REFERENCES `Users`(`UserID`)
+    FOREIGN KEY (`CustomerID`) REFERENCES `Users`(`UserID`)
 );

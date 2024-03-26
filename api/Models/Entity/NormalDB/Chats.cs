@@ -7,23 +7,21 @@ using api.Models.Websocket.Chat;
 
 namespace api.Models.Entity.NormalDB
 {
-    public class Chats
+    public class ChatModel
     {
         [Key]
-        public string chatRoomID { get; set; }
-        public string userID { get; set; }
+        public required string chatRoomID { get; set; }
+        public required int customerID { get; set; }
         public ChatRoomStatus chatRoomStatus { get; set; }
         public DateTime createdAt { get; set; }
-        public DateTime endedAt { get; set; }
+        public DateTime? endedAt { get; set; }
         public DateTime updatedAt { get; set; }
-        public string History { get; set; }
+        public string? history { get; set; }
     }
 
-    public class ChatHistory
+    public enum ChatRoomStatus
     {
-        public string message { get; set; }
-        public string sender { get; set; }
-        public ChatSender chatSender { get; set; }
-        public DateTime createdAt { get; set; }
+        Active,
+        Ended
     }
 }
