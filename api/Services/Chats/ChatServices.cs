@@ -9,6 +9,7 @@ using api.Models;
 using api.Models.Entity.NormalDB;
 using api.Models.Websocket.Chat;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 //hi why we have usertype and senderType what i doing
@@ -23,6 +24,7 @@ namespace api.Services.Chats
         void EndChatRoom(string roomKey);
         Task ExitChatRoom(string roomKey, int userID, UserType userType);
         int GetCurrentRoomCount();
+        Task<ICollection<ChatMessage>> GetChatHistory(string roomKey, int userID);
     }
     public class ChatServices : IChatServices
     {
@@ -259,6 +261,27 @@ namespace api.Services.Chats
         public int GetCurrentRoomCount()
         {
             return chatRoom.Count;
+        }
+
+        public async Task<ICollection<ChatMessage>> GetChatHistory(string roomKey, int userID)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
+                ChatModel chat = await normalDataBaseContext.Chats.FirstOrDefaultAsync(x => x.chatRoomID == roomKey);
+                ICollection<ChatMessage> chatHistories;
+
+                if (chat.history == null || chat == null)
+                {
+                    chatHistories = new List<ChatMessage>();
+                }
+                else
+                {
+                    chatHistories = JsonConvert.DeserializeObject<ICollection<ChatMessage>>(chat.history);
+                }
+
+                return chatHistories;
+            }
         }
     }
 }

@@ -49,7 +49,7 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetChatRooms()
+        public IActionResult GetNumberOfCurrentRoom()
         {
             int count = chatServices.GetCurrentRoomCount();
             return Ok(count);
@@ -84,6 +84,13 @@ namespace api.Controllers
                 // return history of chat
                 return Ok();
             }
+        }
+
+        [HttpGet("{chatRoomId}/history")]
+        public async Task<IActionResult> GetChatRoomHistory(string chatRoomId)
+        {
+            ICollection<ChatMessage> history = await chatServices.GetChatHistory(chatRoomId, 0);
+            return Ok(history);
         }
 
         [HttpDelete("{chatRoomId}")]
