@@ -170,13 +170,13 @@ namespace api.Services.Chats
 
         public async Task SendMessage(string roomKey, string message, bool isToAll, int? sourceID = null, UserType? sourceUserType = null)
         {
-            Console.WriteLine("user in room: " + chatRoom[roomKey].Count);
             for (int i = 0; i < chatRoom[roomKey].Count; i++)
             {
                 ChatUser chatUser = chatRoom[roomKey][i];
-                Console.WriteLine(chatRoom[roomKey][i].UserId);
-                if ((isToAll || (chatUser.UserId != sourceID && chatUser.UserType == sourceUserType)) && chatUser.WebSocket.State == WebSocketState.Open)
+
+                if ((isToAll || !(chatUser.UserId == sourceID && chatUser.UserType == sourceUserType)) && chatUser.WebSocket.State == WebSocketState.Open)
                 {
+                    Console.WriteLine("send to " + chatUser.UserId);
                     await chatUser.WebSocket.SendAsync(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, true, CancellationToken.None);
                 }
             }
