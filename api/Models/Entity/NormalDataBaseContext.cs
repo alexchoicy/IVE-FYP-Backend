@@ -21,6 +21,8 @@ namespace api.Models
         public DbSet<Payments> Payments { get; set; }
         public DbSet<ParkingRecordSessions> ParkingRecordSessions { get; set; }
 
+        public DbSet<Chats> Chats { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ParkingRecords>()
@@ -59,6 +61,10 @@ namespace api.Models
 
             modelBuilder.Entity<Reservations>()
                 .Property(e => e.reservationStatus)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Chats>()
+                .Property(e => e.chatRoomStatus)
                 .HasConversion<string>();
         }
     }

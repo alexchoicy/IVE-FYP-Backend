@@ -25,7 +25,7 @@ namespace api.Middleware
                 return;
             }
 
-            httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+            httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
             httpContext.Response.ContentType = "application/json";
             await httpContext.Response.WriteAsJsonAsync(new ApiResponse<string>
             {

@@ -3,6 +3,7 @@ using api.Fliters;
 using api.Middleware;
 using api.Models;
 using api.Services;
+using api.Services.Chats;
 using api.utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -126,6 +127,8 @@ builder.Services.AddScoped<IReservationServices, ReservationServices>();
 builder.Services.AddScoped<IPaymentServices, PaymentServices>();
 builder.Services.AddScoped<IParkingRecordServices, ParkingRecordServices>();
 
+builder.Services.AddSingleton<IChatServices, ChatServices>();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme =
@@ -205,11 +208,11 @@ else
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 }
 
+app.UseWebSockets();
+
 app.UseHttpsRedirection();
 
 app.MapControllers();
-
-app.UseWebSockets();
 
 app.UseCors("AdminUIOrigin");
 
