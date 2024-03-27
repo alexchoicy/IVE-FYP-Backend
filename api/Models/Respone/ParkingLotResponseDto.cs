@@ -7,6 +7,7 @@ namespace api.Models.Respone
         public int lotID { get; set; }
         public required string name { get; set; }
         public required string address { get; set; }
+        public required string district { get; set; }
         public double latitude { get; set; }
         public double longitude { get; set; }
         public int totalSpaces { get; set; }

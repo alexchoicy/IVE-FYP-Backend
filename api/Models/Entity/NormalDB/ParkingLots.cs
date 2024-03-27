@@ -9,6 +9,7 @@ namespace api.Models.Entity.NormalDB
         public required int lotID { get; set; }
         public required string name { get; set; }
         public required string address { get; set; }
+        public required string district { get; set; }
         public required double latitude { get; set; }
         public required double longitude { get; set; }
         public int totalSpaces { get; set; }

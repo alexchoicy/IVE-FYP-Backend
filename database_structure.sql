@@ -34,6 +34,7 @@ CREATE TABLE `ParkingLots` (
     `LotID` int NOT NULL AUTO_INCREMENT,
     `Name` varchar(50) NOT NULL,
     `Address` varchar(255) NOT NULL,
+    `district` varchar(50) NOT NULL,
     `Latitude` decimal(10, 8) NOT NULL,
     `Longitude` decimal(11, 8) NOT NULL,
     `TotalSpaces` int NOT NULL,
