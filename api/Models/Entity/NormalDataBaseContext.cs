@@ -66,6 +66,11 @@ namespace api.Models
             modelBuilder.Entity<ChatModel>()
                 .Property(e => e.chatRoomStatus)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<ChatModel>()
+                .HasOne(p => p.customer)
+                .WithMany()
+                .HasForeignKey(p => p.customerID);
         }
     }
 }

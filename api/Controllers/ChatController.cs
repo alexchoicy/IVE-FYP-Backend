@@ -5,8 +5,10 @@ using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
+using api.Models.Respone;
 using api.Models.Websocket.Chat;
 using api.Services.Chats;
+using api.utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -49,29 +51,43 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetNumberOfCurrentRoom()
+        public async Task<IActionResult> GetChatRooms(int page = 1, int recordsPerPage = 15)
         {
-            int count = chatServices.GetCurrentRoomCount();
-            return Ok(count);
+            string token = HttpContext.Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+
+            (string userID, bool isAdmin) = ValidateTokenAndReturnID(token);
+
+            if (string.IsNullOrEmpty(userID))
+            {
+                return Unauthorized();
+            }
+
+            PagedResponse<IEnumerable<ChatResponseDto>> rooms = await chatServices.GetChatRooms(int.Parse(userID), isAdmin, page, recordsPerPage);
+            return Ok(rooms);
         }
 
         [Route("{chatRoomId}")]
         public async Task<IActionResult> GetChatRooms(string chatRoomId)
         {
+            string token = HttpContext.Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+
+            (string userID, bool isAdmin) = ValidateTokenAndReturnID(token);
+
+            if (string.IsNullOrEmpty(userID))
+            {
+                return Unauthorized();
+            }
             if (HttpContext.WebSockets.IsWebSocketRequest)
             {
-                string token = HttpContext.Request.Headers["Authorization"].ToString();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return Unauthorized();
-                }
 
-                (string userID, bool isAdmin) = ValidateTokenAndReturnID(token);
-
-                if (string.IsNullOrEmpty(userID))
-                {
-                    return Unauthorized();
-                }
 
                 WebSocket ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 Console.WriteLine("WebSocket Connected");
@@ -81,8 +97,9 @@ namespace api.Controllers
             }
             else
             {
-                // return history of chat
-                return Ok();
+                // int count = chatServices.GetCurrentRoomCount();
+                // return Ok(count);
+                return BadRequest();
             }
         }
 
@@ -107,7 +124,7 @@ namespace api.Controllers
         }
 
         [HttpGet("{chatRoomId}/members")]
-        public async Task<IActionResult> GetChatRoomMembers(string chatRoomId)
+        public IActionResult GetChatRoomMembers(string chatRoomId)
         {
             int members = chatServices.GetRoomMember(chatRoomId);
             return Ok(members);

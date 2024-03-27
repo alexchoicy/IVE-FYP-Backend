@@ -7,7 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using api.Models;
 using api.Models.Entity.NormalDB;
+using api.Models.Respone;
 using api.Models.Websocket.Chat;
+using api.utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -22,6 +24,7 @@ namespace api.Services.Chats
         int GetCurrentRoomCount();
         int GetRoomMember(string roomKey);
         Task<ICollection<ChatMessage>> GetChatHistory(string roomKey, int userID);
+        Task<PagedResponse<IEnumerable<ChatResponseDto>>> GetChatRooms(int userID, bool isAdmin, int page, int recordsPerPage);
     }
     public class ChatServices : IChatServices
     {
@@ -295,6 +298,69 @@ namespace api.Services.Chats
                     return new List<ChatMessage>();
                 }
                 return JsonConvert.DeserializeObject<ICollection<ChatMessage>>(chat.history)!;
+            }
+        }
+
+        public async Task<PagedResponse<IEnumerable<ChatResponseDto>>> GetChatRooms(int userID, bool isAdmin, int page, int recordsPerPage)
+        {
+            PagedResponse<IEnumerable<ChatResponseDto>> response = new PagedResponse<IEnumerable<ChatResponseDto>>
+            {
+                CurrentPage = page,
+                PageSize = recordsPerPage,
+                TotalCount = 0,
+                TotalPages = 0,
+                Data = null
+            };
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
+                IEnumerable<ChatResponseDto> chatRooms;
+                if (isAdmin)
+                {
+                    int totalRecords = await normalDataBaseContext.Chats.CountAsync();
+                    response.TotalCount = totalRecords;
+                    response.TotalPages = (int)Math.Ceiling((double)totalRecords / recordsPerPage);
+
+                    chatRooms = await normalDataBaseContext.Chats.OrderByDescending(x => x.chatRoomStatus == ChatRoomStatus.Active).ThenByDescending(x => x.updatedAt)
+                        .Include(x => x.customer)
+                        .Skip(recordsPerPage * (page - 1))
+                        .Take(recordsPerPage)
+                        .Select(x => new ChatResponseDto
+                        {
+                            chatRoomID = x.chatRoomID,
+                            customerID = x.customerID,
+                            chatRoomStatus = x.chatRoomStatus.ToString(),
+                            createdAt = x.createdAt,
+                            endedAt = x.endedAt,
+                            updatedAt = x.updatedAt,
+                            history = x.history == null ? null : JsonConvert.DeserializeObject<ICollection<ChatMessage>>(x.history)
+                        }).ToListAsync();
+                }
+                else
+                {
+                    int totalRecords = await normalDataBaseContext.Chats.CountAsync(x => x.customerID == userID);
+                    response.TotalCount = totalRecords;
+                    response.TotalPages = (int)Math.Ceiling((double)totalRecords / recordsPerPage);
+
+                    chatRooms = await normalDataBaseContext.Chats.Where(x => x.customerID == userID)
+                        .OrderByDescending(x => x.chatRoomStatus == ChatRoomStatus.Active)
+                        .ThenByDescending(x => x.updatedAt)
+                        .Include(x => x.customer)
+                        .Skip(recordsPerPage * (page - 1))
+                        .Take(recordsPerPage)
+                        .Select(x => new ChatResponseDto
+                        {
+                            chatRoomID = x.chatRoomID,
+                            customerID = x.customerID,
+                            chatRoomStatus = x.chatRoomStatus.ToString(),
+                            createdAt = x.createdAt,
+                            endedAt = x.endedAt,
+                            updatedAt = x.updatedAt,
+                            history = x.history == null ? null : JsonConvert.DeserializeObject<ICollection<ChatMessage>>(x.history)
+                        }).ToListAsync();
+                }
+                response.Data = chatRooms;
+                return response;
             }
         }
 
