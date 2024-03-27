@@ -161,6 +161,7 @@ builder.Services.AddAuthentication(options =>
         OnMessageReceived = context =>
         {
             context.Token = context.Request.Cookies["token"];
+            context.HttpContext.Request.Headers["Authorization"] = "Bearer " + context.Token;
             return Task.CompletedTask;
         },
 

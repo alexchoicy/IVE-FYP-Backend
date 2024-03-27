@@ -249,7 +249,7 @@ namespace api.Services.Chats
                 {
                     message = message,
                     senderID = userID,
-                    chatSender = userType,
+                    chatSender = userType.ToString(),
                     createdAt = DateTime.Now
                 };
 
@@ -329,6 +329,7 @@ namespace api.Services.Chats
                         {
                             chatRoomID = x.chatRoomID,
                             customerID = x.customerID,
+                            customerName = x.customer.lastName + " " + x.customer.firstName,
                             chatRoomStatus = x.chatRoomStatus.ToString(),
                             createdAt = x.createdAt,
                             endedAt = x.endedAt,
@@ -352,6 +353,7 @@ namespace api.Services.Chats
                         {
                             chatRoomID = x.chatRoomID,
                             customerID = x.customerID,
+                            customerName = x.customer.lastName + " " + x.customer.firstName,
                             chatRoomStatus = x.chatRoomStatus.ToString(),
                             createdAt = x.createdAt,
                             endedAt = x.endedAt,

@@ -10,6 +10,7 @@ namespace api.Models.Respone
     {
         public string chatRoomID { get; set; }
         public int customerID { get; set; }
+        public required string customerName { get; set; }
         public string chatRoomStatus { get; set; }
         public DateTime createdAt { get; set; }
         public DateTime? endedAt { get; set; }
