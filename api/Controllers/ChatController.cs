@@ -76,7 +76,7 @@ namespace api.Controllers
                 WebSocket ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 Console.WriteLine("WebSocket Connected");
                 Console.WriteLine(chatRoomId);
-                await chatServices.handleConnection(ws, chatRoomId, int.Parse(userID), isAdmin ? UserType.Admin : UserType.User);
+                await chatServices.handleConnection(ws, chatRoomId, int.Parse(userID), isAdmin ? ChatSender.Staff : ChatSender.Customer);
                 return new EmptyResult();
             }
             else
@@ -89,15 +89,35 @@ namespace api.Controllers
         [HttpGet("{chatRoomId}/history")]
         public async Task<IActionResult> GetChatRoomHistory(string chatRoomId)
         {
-            ICollection<ChatMessage> history = await chatServices.GetChatHistory(chatRoomId, 0);
+            string token = HttpContext.Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+
+            (string userID, bool isAdmin) = ValidateTokenAndReturnID(token);
+
+            if (string.IsNullOrEmpty(userID))
+            {
+                return Unauthorized();
+            }
+
+            ICollection<ChatMessage> history = await chatServices.GetChatHistory(chatRoomId, int.Parse(userID));
             return Ok(history);
         }
 
-        [HttpDelete("{chatRoomId}")]
-        public async Task<IActionResult> EndChatRoom(string chatRoomId)
+        [HttpGet("{chatRoomId}/members")]
+        public async Task<IActionResult> GetChatRoomMembers(string chatRoomId)
         {
-            return Ok();
+            int members = chatServices.GetRoomMember(chatRoomId);
+            return Ok(members);
         }
+
+        // [HttpDelete("{chatRoomId}")]
+        // public async Task<IActionResult> EndChatRoom(string chatRoomId)
+        // {
+        //     return Ok();
+        // }
 
         private (string?, bool) ValidateTokenAndReturnID(string token)
         {

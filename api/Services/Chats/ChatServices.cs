@@ -18,12 +18,9 @@ namespace api.Services.Chats
     public interface IChatServices
     {
         Task<string> CreateChatRoom(int customerID);
-        Task handleConnection(WebSocket socket, string roomKey, int userID, UserType userType);
-        Task ReceiveMessage(WebSocket socket, string roomKey, int userID, UserType userType);
-        Task SendMessage(string roomKey, string message, bool isToAll, int? sourceID = null, UserType? sourceUserType = null);
-        void EndChatRoom(string roomKey);
-        Task ExitChatRoom(string roomKey, int userID, UserType userType);
+        Task handleConnection(WebSocket socket, string roomKey, int userID, ChatSender userType);
         int GetCurrentRoomCount();
+        int GetRoomMember(string roomKey);
         Task<ICollection<ChatMessage>> GetChatHistory(string roomKey, int userID);
     }
     public class ChatServices : IChatServices
@@ -44,33 +41,39 @@ namespace api.Services.Chats
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
-                do
-                {
-                    string roomKey = Guid.NewGuid().ToString();
-                    ChatModel? chat = normalDataBaseContext.Chats.FirstOrDefault(x => x.chatRoomID == roomKey);
-                    if (chat != null)
-                    {
-                        continue;
-                    }
-                    ChatModel newChat = new ChatModel
-                    {
-                        chatRoomID = roomKey,
-                        customerID = customerID,
-                        chatRoomStatus = ChatRoomStatus.Active,
-                        createdAt = DateTime.Now,
-                        updatedAt = DateTime.Now
-                    };
-                    normalDataBaseContext.Chats.Add(newChat);
-                    await normalDataBaseContext.SaveChangesAsync();
-
-                    chatRoom.TryAdd(roomKey, new List<ChatUser>());
-                    return roomKey;
-                } while (true);
+                string roomKey = GenerateUniqueRoomKey(normalDataBaseContext);
+                await CreateNewChat(normalDataBaseContext, roomKey, customerID);
+                chatRoom.TryAdd(roomKey, new List<ChatUser>());
+                return roomKey;
             }
-
         }
 
-        public async Task handleConnection(WebSocket socket, string roomKey, int userID, UserType userType)
+        private string GenerateUniqueRoomKey(NormalDataBaseContext normalDataBaseContext)
+        {
+            string roomKey;
+            do
+            {
+                roomKey = Guid.NewGuid().ToString();
+            } while (normalDataBaseContext.Chats.Any(x => x.chatRoomID == roomKey));
+            return roomKey;
+        }
+
+        private async Task CreateNewChat(NormalDataBaseContext normalDataBaseContext, string roomKey, int customerID)
+        {
+            ChatModel newChat = new ChatModel
+            {
+                chatRoomID = roomKey,
+                customerID = customerID,
+                chatRoomStatus = ChatRoomStatus.Active,
+                createdAt = DateTime.Now,
+                updatedAt = DateTime.Now
+            };
+            normalDataBaseContext.Chats.Add(newChat);
+            await normalDataBaseContext.SaveChangesAsync();
+        }
+
+
+        public async Task handleConnection(WebSocket socket, string roomKey, int userID, ChatSender userType)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
@@ -83,7 +86,7 @@ namespace api.Services.Chats
                     return;
                 }
 
-                if (userType != UserType.Admin && chat.customerID != userID)
+                if (userType != ChatSender.Staff && chat.customerID != userID)
                 {
                     await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Unauthorized", CancellationToken.None);
                     return;
@@ -102,35 +105,32 @@ namespace api.Services.Chats
                 }
             }
 
-            var userToKickOut = chatRoom[roomKey].FirstOrDefault(user => user.UserId == userID && user.UserType == userType);
+            ChatUser? userToKick = chatRoom[roomKey].FirstOrDefault(x => x.UserId == userID && x.UserType == userType);
 
-            if (userToKickOut != null)
+            if (userToKick != null)
             {
-                Console.WriteLine("Duplicate connection" + roomKey + " " + userID + " " + userType);
-                await userToKickOut.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "A new client connect to the chat", CancellationToken.None);
-                chatRoom[roomKey].Remove(userToKickOut);
+                //kick function
+                await userToKick.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Duplicated connection", CancellationToken.None);
+                chatRoom[roomKey].Remove(userToKick);
             }
 
-            ChatUser chatUser = new ChatUser
+            ChatUser newUser = new ChatUser
             {
                 UserId = userID,
                 UserType = userType,
                 WebSocket = socket
             };
 
-            chatRoom[roomKey].Add(chatUser);
-
-            await SendMessage(roomKey, userType.ToString() + userID + " joined the chat", true);
-
+            chatRoom[roomKey].Add(newUser);
+            await SendMessage(roomKey, userType.ToString() + userID + " User has joined the chat", true);
             await ReceiveMessage(socket, roomKey, userID, userType);
-
-            Console.WriteLine(socket.State);
         }
 
-        public async Task ReceiveMessage(WebSocket socket, string roomKey, int userID, UserType userType)
+        public async Task ReceiveMessage(WebSocket socket, string roomKey, int userID, ChatSender userType)
         {
-            byte[] buffer = new byte[1024 * 4];
             WebSocketReceiveResult result;
+            byte[] buffer = new byte[1024 * 4];
+
             while (socket.State == WebSocketState.Open)
             {
                 try
@@ -139,55 +139,94 @@ namespace api.Services.Chats
                 }
                 catch (OperationCanceledException)
                 {
+                    Console.WriteLine("OperationCanceledException");
                     Console.WriteLine(socket.State);
-                    // await EndChatRoom(roomKey);
-                    socket.Dispose();
-                    chatRoom[roomKey].Remove(chatRoom[roomKey].FirstOrDefault(x => x.UserId == userID));
-                    throw;
+                    break;
                 }
-                catch (WebSocketException)
+                catch (Exception e)
                 {
-                    Console.WriteLine("WebSocket connection closed abruptly.");
-                    Console.WriteLine("Exit chat room" + roomKey + " " + userID + " " + userType);
-                    await ExitChatRoom(roomKey, userID, userType);
-                    throw;
+                    Console.WriteLine(e);
+                    Console.WriteLine(socket.State);
+                    break;
                 }
 
                 if (result.EndOfMessage && result.MessageType == WebSocketMessageType.Text)
                 {
                     string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    SaveMessage(roomKey, message, userID, userType == UserType.Admin ? ChatSender.Staff : ChatSender.Customer);
-                    Console.WriteLine(message);
-                    await SendMessage(roomKey, message, false, userID, userType);
+                    // ChatMessage chatMessage = JsonConvert.DeserializeObject<ChatMessage>(message);
+                    // await SendMessage(roomKey, chatMessage.message, false, chatMessage.senderID, chatMessage.chatSender);
+                    await SendMessage(roomKey, message, false, userID, userType); //this is for testing
+                    await SaveMessage(roomKey, userID, userType, message);
                 }
-            }
-
-            Console.WriteLine("connection closed");
-
-            Console.WriteLine("Exit chat room" + roomKey + " " + userID + " " + userType + " " + socket.State);
-            await ExitChatRoom(roomKey, userID, userType);
-        }
-
-        public async Task SendMessage(string roomKey, string message, bool isToAll, int? sourceID = null, UserType? sourceUserType = null)
-        {
-            for (int i = 0; i < chatRoom[roomKey].Count; i++)
-            {
-                ChatUser chatUser = chatRoom[roomKey][i];
-
-                if ((isToAll || !(chatUser.UserId == sourceID && chatUser.UserType == sourceUserType)) && chatUser.WebSocket.State == WebSocketState.Open)
+                else if (result.MessageType == WebSocketMessageType.Close || socket.State == WebSocketState.Aborted)
                 {
-                    Console.WriteLine("send to " + chatUser.UserId);
-                    await chatUser.WebSocket.SendAsync(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, true, CancellationToken.None);
+                    await UserExit(roomKey, userID, userType, "User has left the chat");
+                    break;
+                }
+
+            }
+        }
+
+        private async Task UserExit(string roomKey, int userID, ChatSender userType, string message)
+        {
+            ChatUser? userToKick = chatRoom[roomKey].FirstOrDefault(x => x.UserId == userID && x.UserType == userType);
+            if (userToKick != null)
+            {
+                await userToKick.WebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, message, CancellationToken.None);
+                chatRoom[roomKey].Remove(userToKick);
+                if (chatRoom[roomKey].Count == 0)
+                {
+                    await EndChatRoom(roomKey);
                 }
             }
         }
 
-        public async Task SaveMessage(string roomKey, string message, int sender, ChatSender senderType)
+        private async Task EndChatRoom(string roomKey)
+        {
+            await Task.Delay(TimeSpan.FromMinutes(5));
+            if (chatRoom.ContainsKey(roomKey) && chatRoom[roomKey].Count == 0)
+            {
+                chatRoom.TryRemove(roomKey, out _);
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
+                    ChatModel? chat = normalDataBaseContext.Chats.FirstOrDefault(x => x.chatRoomID == roomKey);
+                    if (chat != null)
+                    {
+                        chat.chatRoomStatus = ChatRoomStatus.Ended;
+                        chat.updatedAt = DateTime.Now;
+                        await normalDataBaseContext.SaveChangesAsync();
+                    }
+                }
+            }
+        }
+
+        private async Task SendMessage(string roomKey, string message, bool isToAll, int? sourceID = null, ChatSender? sourceUserType = null)
+        {
+            Console.WriteLine("SendMessage" + roomKey + message + isToAll + sourceID + sourceUserType);
+            Console.WriteLine(chatRoom[roomKey].Count);
+            if (isToAll)
+            {
+                foreach (ChatUser user in chatRoom[roomKey])
+                {
+                    await user.WebSocket.SendAsync(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, true, CancellationToken.None);
+                }
+                return;
+            }
+            ChatUser[] chatUsers = chatRoom[roomKey].Where(chatUser => !(chatUser.UserId == sourceID && chatUser.UserType == sourceUserType)).ToArray();
+            Console.WriteLine(JsonConvert.SerializeObject(chatUsers));
+            foreach (ChatUser user in chatUsers)
+            {
+                await user.WebSocket.SendAsync(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+        }
+
+        private async Task SaveMessage(string roomKey, int userID, ChatSender userType, string message)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
-                ChatModel chat = normalDataBaseContext.Chats.FirstOrDefault(x => x.chatRoomID == roomKey);
+                ChatModel? chat = normalDataBaseContext.Chats.FirstOrDefault(x => x.chatRoomID == roomKey);
                 if (chat == null)
                 {
                     return;
@@ -200,14 +239,14 @@ namespace api.Services.Chats
                 }
                 else
                 {
-                    chatHistories = JsonConvert.DeserializeObject<ICollection<ChatMessage>>(chat.history);
+                    chatHistories = JsonConvert.DeserializeObject<ICollection<ChatMessage>>(chat.history)!;
                 }
 
                 ChatMessage chatHistory = new ChatMessage
                 {
                     message = message,
-                    senderID = sender,
-                    chatSender = senderType,
+                    senderID = userID,
+                    chatSender = userType,
                     createdAt = DateTime.Now
                 };
 
@@ -218,49 +257,20 @@ namespace api.Services.Chats
             }
         }
 
-        public void EndChatRoom(string roomKey)
-        {
 
-            chatRoom.TryRemove(roomKey, out _);
-            using (var scope = _serviceScopeFactory.CreateScope())
-            {
-                NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
-                ChatModel chat = normalDataBaseContext.Chats.FirstOrDefault(x => x.chatRoomID == roomKey);
-                if (chat == null)
-                {
-                    return;
-                }
-                chat.chatRoomStatus = ChatRoomStatus.Ended;
-                chat.endedAt = DateTime.Now;
-                normalDataBaseContext.SaveChanges();
-            }
-
-        }
-
-        public async Task ExitChatRoom(string roomKey, int userID, UserType userType)
-        {
-            foreach (var chatUser in chatRoom[roomKey])
-            {
-                if (chatUser.UserId == userID && chatUser.UserType == userType)
-                {
-                    chatUser.WebSocket.Dispose();
-                    chatRoom[roomKey].Remove(chatUser);
-                    if (chatRoom[roomKey].Count == 0)
-                    {
-                        EndChatRoom(roomKey);
-                    }
-                    else
-                    {
-                        await SendMessage(roomKey, "User " + userID + " left the chat", true);
-                    }
-                    break;
-                }
-            }
-        }
 
         public int GetCurrentRoomCount()
         {
             return chatRoom.Count;
+        }
+
+        public int GetRoomMember(string roomKey)
+        {
+            if (chatRoom.ContainsKey(roomKey))
+            {
+                return chatRoom[roomKey].Count;
+            }
+            return 0;
         }
 
         public async Task<ICollection<ChatMessage>> GetChatHistory(string roomKey, int userID)
@@ -268,20 +278,25 @@ namespace api.Services.Chats
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 NormalDataBaseContext normalDataBaseContext = scope.ServiceProvider.GetRequiredService<NormalDataBaseContext>();
-                ChatModel chat = await normalDataBaseContext.Chats.FirstOrDefaultAsync(x => x.chatRoomID == roomKey);
-                ICollection<ChatMessage> chatHistories;
-
-                if (chat.history == null || chat == null)
+                ChatModel? chat = normalDataBaseContext.Chats.FirstOrDefault(x => x.chatRoomID == roomKey);
+                Console.WriteLine(JsonConvert.SerializeObject(chat));
+                if (chat == null)
                 {
-                    chatHistories = new List<ChatMessage>();
+                    return new List<ChatMessage>();
                 }
-                else
+                //TODO: ADD exception
+                Console.WriteLine(chat.customerID + " " + userID + " " + (chat.customerID != userID));
+                // if (chat.customerID != userID)
+                // {
+                //     return new List<ChatMessage>();
+                // }
+                if (chat.history == null)
                 {
-                    chatHistories = JsonConvert.DeserializeObject<ICollection<ChatMessage>>(chat.history);
+                    return new List<ChatMessage>();
                 }
-
-                return chatHistories;
+                return JsonConvert.DeserializeObject<ICollection<ChatMessage>>(chat.history)!;
             }
         }
+
     }
 }
