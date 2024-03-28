@@ -35,6 +35,7 @@ namespace api.Controllers
         public async Task<IActionResult> CreateChatRoom()
         {
             string token = HttpContext.Request.Headers["Authorization"].ToString();
+            Console.WriteLine(token);
             if (string.IsNullOrEmpty(token))
             {
                 return Unauthorized();
@@ -92,7 +93,7 @@ namespace api.Controllers
                 WebSocket ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 Console.WriteLine("WebSocket Connected");
                 Console.WriteLine(chatRoomId);
-                await chatServices.handleConnection(ws, chatRoomId, int.Parse(userID), isAdmin ? ChatSender.Staff : ChatSender.Customer);
+                await chatServices.handleConnection(ws, chatRoomId, int.Parse(userID), isAdmin ? ChatSender.STAFF : ChatSender.CUSTOMER);
                 return new EmptyResult();
             }
             else
@@ -119,7 +120,7 @@ namespace api.Controllers
                 return Unauthorized();
             }
 
-            ICollection<ChatMessage> history = await chatServices.GetChatHistory(chatRoomId, int.Parse(userID));
+            ChatResponseDto? history = await chatServices.GetChatHistory(chatRoomId, int.Parse(userID));
             return Ok(history);
         }
 

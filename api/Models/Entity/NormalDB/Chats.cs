@@ -25,7 +25,7 @@ namespace api.Models.Entity.NormalDB
 
     public enum ChatRoomStatus
     {
-        Active,
-        Ended
+        ACTIVE,
+        ENDED
     }
 }
