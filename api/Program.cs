@@ -4,6 +4,7 @@ using api.Middleware;
 using api.Models;
 using api.Services;
 using api.Services.Chats;
+using api.Services.Notifications;
 using api.utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -128,6 +129,7 @@ builder.Services.AddScoped<IPaymentServices, PaymentServices>();
 builder.Services.AddScoped<IParkingRecordServices, ParkingRecordServices>();
 
 builder.Services.AddSingleton<IChatServices, ChatServices>();
+builder.Services.AddSingleton<IChatNotifications, ChatNotifications>();
 
 builder.Services.AddAuthentication(options =>
 {

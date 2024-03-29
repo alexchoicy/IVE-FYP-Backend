@@ -9,6 +9,8 @@ using api.Models;
 using api.Models.Entity.NormalDB;
 using api.Models.Respone;
 using api.Models.Websocket.Chat;
+using api.Models.Websocket.Notifications;
+using api.Services.Notifications;
 using api.utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -78,6 +80,7 @@ namespace api.Services.Chats
             };
             normalDataBaseContext.Chats.Add(newChat);
             await normalDataBaseContext.SaveChangesAsync();
+            await ChatNotifications.SendMessage(roomKey, ChatNotificationType.NEW_ROOM);
         }
 
 
@@ -129,8 +132,13 @@ namespace api.Services.Chats
             }
 
             ChatUser? userToKick = chatRoom[roomKey].FirstOrDefault(x => x.UserId == userID && x.UserType == userType);
-
-            if (userToKick != null)
+            ChatUser newUser = new ChatUser
+            {
+                UserId = userID,
+                UserType = userType,
+                WebSocket = socket
+            };
+            if (userToKick != null && userToKick != newUser)
             {
                 WebSocketErrorMessage socketErrorMessage = new WebSocketErrorMessage
                 {
@@ -140,17 +148,21 @@ namespace api.Services.Chats
                 //kick function
                 await userToKick.WebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, JsonConvert.SerializeObject(socketErrorMessage, jsonSerializerSettings), CancellationToken.None);
                 chatRoom[roomKey].Remove(userToKick);
+                await SendMessage(roomKey, userType.ToString() + userID + " User has left the chat", true);
+                //why it work?????
+                await Task.Delay(1000);
             }
 
-            ChatUser newUser = new ChatUser
-            {
-                UserId = userID,
-                UserType = userType,
-                WebSocket = socket
-            };
-
             chatRoom[roomKey].Add(newUser);
-            await SendMessage(roomKey, userType.ToString() + userID + " User has joined the chat", true);
+
+
+
+
+            if (socket.State == WebSocketState.Open)
+            {
+                await SendMessage(roomKey, userType.ToString() + userID + " User has joined the chat", true);
+            }
+
             await ReceiveMessage(socket, roomKey, userID, userType);
         }
 
@@ -258,7 +270,6 @@ namespace api.Services.Chats
                 chatSender = sourceUserType?.ToString() ?? "SYSTEM",
                 createdAt = DateTime.Now
             };
-
             byte[] messageBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(chatMessage));
             if (isToAll)
             {
@@ -268,6 +279,7 @@ namespace api.Services.Chats
                 }
                 return;
             }
+            await ChatNotifications.SendMessage(roomKey, ChatNotificationType.NEW_MESSAGE);
             ChatUser[] chatUsers = chatRoom[roomKey].Where(chatUser => !(chatUser.UserId == sourceID && chatUser.UserType == sourceUserType)).ToArray();
             Console.WriteLine(JsonConvert.SerializeObject(chatUsers));
             foreach (ChatUser user in chatUsers)
