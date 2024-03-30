@@ -14,6 +14,7 @@ namespace api.Enums
     {
         App,
         PaymentMachine,
+        Free
     }
 
     public enum PaymentMethodType
@@ -23,7 +24,8 @@ namespace api.Enums
         DebitCard,
         ApplePay,
         GooglePay,
-        SamsungPay
+        SamsungPay,
+        Free
     }
 
     public enum PaymentType

@@ -66,6 +66,7 @@ namespace api.Services.Gates
                 }
 
                 parkingLot.avaiableRegularSpaces--;
+                normalDataBaseContext.ParkingLots.Update(parkingLot);
                 await normalDataBaseContext.SaveChangesAsync();
 
                 int sessionID = await createSessionID(normalDataBaseContext, lprReceiveModel);
@@ -83,6 +84,7 @@ namespace api.Services.Gates
                 if (reservations.spaceType == SpaceType.ELECTRIC)
                 {
                     parkingLot.avaiableRegularSpaces--;
+                    normalDataBaseContext.ParkingLots.Update(parkingLot);
                     await normalDataBaseContext.SaveChangesAsync();
                 }
 

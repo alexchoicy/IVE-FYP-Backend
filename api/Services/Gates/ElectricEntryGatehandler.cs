@@ -32,6 +32,7 @@ namespace api.Services.Gates
                 }
 
                 parkingLot.avaiableRegularSpaces++;
+                normalDataBaseContext.ParkingLots.Update(parkingLot);
                 await normalDataBaseContext.SaveChangesAsync();
 
                 if (vehicle == null)
@@ -67,6 +68,7 @@ namespace api.Services.Gates
                     return;
                 }
                 parkingLot.avaiableElectricSpaces--;
+                normalDataBaseContext.ParkingLots.Update(parkingLot);
                 parkingRecords.exitTime = DateTime.Now;
                 normalDataBaseContext.ParkingRecords.Update(parkingRecords);
                 await normalDataBaseContext.SaveChangesAsync();

@@ -71,6 +71,9 @@ namespace api.Models
                 .HasOne(p => p.customer)
                 .WithMany()
                 .HasForeignKey(p => p.customerID);
+
+            modelBuilder.Entity<Reservations>()
+                .HasOne(p => p.payment);
         }
     }
 }

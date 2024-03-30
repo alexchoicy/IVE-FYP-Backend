@@ -3,21 +3,24 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Enums;
 using api.Exceptions;
 using api.Models;
 using api.Models.Entity.NormalDB;
 using api.Models.Request;
 using api.Models.Respone;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Services
 {
     public interface IReservationServices
     {
-        IEnumerable<ReservationResponseDto> getReservationsByUserID(int userID);
+        Task<IEnumerable<ReservationResponseDto>> getReservationsByUserID(int userID);
         IEnumerable<ReservationResponseDto> getReservationsByLotID(int lotID);
         IEnumerable<ReservationResponseDto> getReservationsByVehicleID(int vehicleID);
         ReservationResponseDto getReservationByID(int reservationID);
-        bool createReservation(int userID, CreateReservationRequestDto createReservationRequestDto);
+        Task<bool> createReservation(int userID, CreateReservationRequestDto createReservationRequestDto);
+        string MakeReservationPayment(int id, PaymentMethodType paymentMethodType);
     }
     public class ReservationServices : IReservationServices
     {
@@ -30,10 +33,12 @@ namespace api.Services
             this.hourlyAvaiableSpaceServices = hourlyAvaiableSpaceServices;
         }
 
-        public IEnumerable<ReservationResponseDto> getReservationsByUserID(int userID)
+        public async Task<IEnumerable<ReservationResponseDto>> getReservationsByUserID(int userID)
         {
-            IEnumerable<ReservationResponseDto> reservations = normalDataBaseContext.Reservations
+            Console.WriteLine(userID);
+            IEnumerable<ReservationResponseDto> reservations = await normalDataBaseContext.Reservations
                 .Where(r => r.vehicle.userID == userID)
+                .Include(r => r.lot)
                 .Select(r => new ReservationResponseDto
                 {
                     reservationID = r.reservationID,
@@ -44,11 +49,53 @@ namespace api.Services
                     vehicleLicense = r.vehicle.vehicleLicense,
                     startTime = r.startTime,
                     endTime = r.endTime,
-                    price = r.price,
+                    // paymentID = r.paymentID,
+                    payment = new PaymentResponseDto
+                    {
+                        paymentMethod = r.payment.paymentMethod.ToString(),
+                        amount = r.payment.amount,
+                        paymentID = r.payment.paymentID,
+                        paymentIssuedAt = r.payment.createdAt,
+                        paymentStatus = r.payment.paymentStatus.ToString(),
+                        paymentType = r.payment.paymentType.ToString(),
+                        relatedID = r.payment.relatedID,
+                        userId = r.payment.userID,
+                        paymentTime = r.payment.paymentTime
+                    },
                     reservationStatus = r.reservationStatus,
                     createdTime = r.createdAt,
-                    cancelledTime = r.canceledAt
-                });
+                    cancelledTime = r.canceledAt,
+                    status = r.reservationStatus.ToString()
+                }).ToListAsync();
+
+            // foreach (var reservation in reservations)
+            // {
+            //     Payments payment = await normalDataBaseContext.Payments.FirstOrDefaultAsync(p => p.paymentID == reservation.paymentID);
+            //     reservation.payment = new PaymentResponseDto
+            //     {
+            //         paymentMethod = payment.paymentMethod.ToString(),
+            //         amount = payment.amount,
+            //         paymentID = payment.paymentID,
+            //         paymentIssuedAt = payment.createdAt,
+            //         paymentStatus = payment.paymentStatus.ToString(),
+            //         paymentType = payment.paymentType.ToString(),
+            //         relatedID = payment.relatedID,
+            //         userId = payment.userID,
+            //         paymentTime = payment.paymentTime
+            //     };
+            //     reservation.payment = new PaymentResponseDto
+            //     {
+            //         paymentMethod = payment.paymentMethod.ToString(),
+            //         amount = payment.amount,
+            //         paymentID = payment.paymentID,
+            //         paymentIssuedAt = payment.createdAt,
+            //         paymentStatus = payment.paymentStatus.ToString(),
+            //         paymentType = payment.paymentType.ToString(),
+            //         relatedID = payment.relatedID,
+            //         userId = payment.userID,
+            //         paymentTime = payment.paymentTime
+            //     };
+            // }
             return reservations;
         }
 
@@ -66,7 +113,18 @@ namespace api.Services
                     vehicleLicense = r.vehicle.vehicleLicense,
                     startTime = r.startTime,
                     endTime = r.endTime,
-                    price = r.price,
+                    payment = new PaymentResponseDto
+                    {
+                        paymentMethod = r.payment.paymentMethod.ToString(),
+                        amount = r.payment.amount,
+                        paymentID = r.payment.paymentID,
+                        paymentIssuedAt = r.payment.createdAt,
+                        paymentStatus = r.payment.paymentStatus.ToString(),
+                        paymentType = r.payment.paymentType.ToString(),
+                        relatedID = r.payment.relatedID,
+                        userId = r.payment.userID,
+                        paymentTime = r.payment.paymentTime
+                    },
                     reservationStatus = r.reservationStatus,
                     createdTime = r.createdAt,
                     cancelledTime = r.canceledAt
@@ -88,7 +146,18 @@ namespace api.Services
                     vehicleLicense = r.vehicle.vehicleLicense,
                     startTime = r.startTime,
                     endTime = r.endTime,
-                    price = r.price,
+                    payment = new PaymentResponseDto
+                    {
+                        paymentMethod = r.payment.paymentMethod.ToString(),
+                        amount = r.payment.amount,
+                        paymentID = r.payment.paymentID,
+                        paymentIssuedAt = r.payment.createdAt,
+                        paymentStatus = r.payment.paymentStatus.ToString(),
+                        paymentType = r.payment.paymentType.ToString(),
+                        relatedID = r.payment.relatedID,
+                        userId = r.payment.userID,
+                        paymentTime = r.payment.paymentTime
+                    },
                     reservationStatus = r.reservationStatus,
                     createdTime = r.createdAt,
                     cancelledTime = r.canceledAt
@@ -109,7 +178,19 @@ namespace api.Services
                     vehicleLicense = r.vehicle.vehicleLicense,
                     startTime = r.startTime,
                     endTime = r.endTime,
-                    price = r.price,
+                    paymentID = r.paymentID,
+                    payment = new PaymentResponseDto
+                    {
+                        paymentMethod = r.payment.paymentMethod.ToString(),
+                        amount = r.payment.amount,
+                        paymentID = r.payment.paymentID,
+                        paymentIssuedAt = r.payment.createdAt,
+                        paymentStatus = r.payment.paymentStatus.ToString(),
+                        paymentType = r.payment.paymentType.ToString(),
+                        relatedID = r.payment.relatedID,
+                        userId = r.payment.userID,
+                        paymentTime = r.payment.paymentTime
+                    },
                     reservationStatus = r.reservationStatus,
                     createdTime = r.createdAt,
                     cancelledTime = r.canceledAt
@@ -123,8 +204,7 @@ namespace api.Services
         }
 
 
-        //TODO add price and payment
-        public bool createReservation(int userID, CreateReservationRequestDto createReservationRequestDto)
+        public async Task<bool> createReservation(int userID, CreateReservationRequestDto createReservationRequestDto)
         {
             UserVehicles? uservehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(uv => uv.vehicleID == createReservationRequestDto.vehicleID && uv.userID == userID);
 
@@ -170,6 +250,8 @@ namespace api.Services
             {
                 throw new InvalidSpaceTypeException("Incorrect vehicle type for electric space type");
             }
+
+
 
             IEnumerable<Reservations> reservations = normalDataBaseContext.Reservations
                 .Where(r => r.lotID == createReservationRequestDto.lotID &&
@@ -231,6 +313,17 @@ namespace api.Services
                 throw new ReservationLimitExceededException("Reservation 10 limit exceeded");
             }
 
+            Payments payment = new Payments
+            {
+                paymentType = PaymentType.Reservation,
+                userID = userID,
+                amount = 10,
+                paymentStatus = PaymentStatus.Generated,
+            };
+
+            await normalDataBaseContext.Payments.AddAsync(payment);
+            await normalDataBaseContext.SaveChangesAsync();
+
             Reservations newReservation = new Reservations
             {
                 vehicleID = createReservationRequestDto.vehicleID,
@@ -239,12 +332,39 @@ namespace api.Services
                 endTime = roundedEndTime,
                 spaceType = spaceType,
                 reservationStatus = Enums.ReservationStatus.PENDING,
-                createdAt = DateTime.Now
+                createdAt = DateTime.Now,
+                paymentID = payment.paymentID
             };
             //TODO a method to generate a payment
             normalDataBaseContext.Reservations.Add(newReservation);
             normalDataBaseContext.SaveChanges();
+
+            payment.relatedID = newReservation.reservationID;
+            normalDataBaseContext.Payments.Update(payment);
+            normalDataBaseContext.SaveChanges();
+
             return true;
+        }
+
+        public string MakeReservationPayment(int id, PaymentMethodType paymentMethodType)
+        {
+            Reservations reservation = normalDataBaseContext.Reservations.Include(x => x.payment)
+                .FirstOrDefault(r => r.reservationID == id);
+
+            if (reservation == null)
+            {
+                return "nothing";
+            }
+            
+            reservation.payment.paymentStatus = PaymentStatus.Completed;
+            reservation.payment.paymentTime = DateTime.Now;
+            reservation.payment.paymentMethod = PaymentMethod.App;
+            reservation.payment.paymentMethodType = paymentMethodType;
+            reservation.reservationStatus = ReservationStatus.PAID;
+            normalDataBaseContext.Reservations.Update(reservation);
+            normalDataBaseContext.SaveChanges();
+            
+            return "success";
         }
     }
 }

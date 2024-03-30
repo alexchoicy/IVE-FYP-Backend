@@ -7,6 +7,7 @@ namespace api.Models.Respone
 {
     public class ParkingRecordResponseDto
     {
+        public required int recordID { get; set; }
         public required int lotID { get; set; }
         public required string lotName { get; set; }
         public required string spaceType { get; set; }

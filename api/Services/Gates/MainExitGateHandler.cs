@@ -24,6 +24,7 @@ namespace api.Services.Gates
                 NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope); UserVehicles? vehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
                 ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
                 parkingLot.avaiableRegularSpaces++;
+                normalDataBaseContext.ParkingLots.Update(parkingLot);
                 await normalDataBaseContext.SaveChangesAsync();
 
                 await HandleFinalExit(lprReceiveModel, parkingLot, vehicle);
@@ -55,6 +56,8 @@ namespace api.Services.Gates
                     lastPayment.amount = price;
                     lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
                     lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? DateTime.Now : null;
+                    lastPayment.paymentMethodType = lastPayment.paymentStatus == PaymentStatus.Completed ? PaymentMethodType.Free : PaymentMethodType.Cash;
+                    lastPayment.paymentMethod = lastPayment.paymentStatus == PaymentStatus.Completed ? PaymentMethod.Free : PaymentMethod.PaymentMachine;
                     normalDataBaseContext.Payments.Update(lastPayment);
                     await normalDataBaseContext.SaveChangesAsync();
                 }

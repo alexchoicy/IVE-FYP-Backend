@@ -122,8 +122,10 @@ CREATE TABLE `Reservations` (
     `ReservationStatus` varchar(50) NOT NULL,
     `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `CanceledAt` timestamp,
+    `PaymentID` int NOT NULL,
     PRIMARY KEY (`ReservationID`),
     FOREIGN KEY (`LotID`) REFERENCES `ParkingLots`(`LotID`),
+    FOREIGN KEY (`PaymentID`) REFERENCES `Payments`(`PaymentID`), 
     FOREIGN KEY (`VehicleID`) REFERENCES `UserVehicles`(`VehicleID`)
 );
 

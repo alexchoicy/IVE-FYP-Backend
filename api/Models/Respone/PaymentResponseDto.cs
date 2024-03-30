@@ -14,6 +14,7 @@ namespace api.Models.Respone
         public int relatedID { get; set; }
         public string paymentMethod { get; set; }
         public string paymentStatus { get; set; }
+        public DateTime? paymentTime { get; set; }
         public DateTime paymentIssuedAt { get; set; }
     }
 

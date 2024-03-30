@@ -19,6 +19,8 @@ namespace api.Models.Entity.NormalDB
         public required DateTime startTime { get; set; }
         public required DateTime endTime { get; set; }
         public double price { get; set; }
+        [ForeignKey(("paymentID"))]
+        public required int paymentID { get; set; }
         [Column(TypeName = "varchar")]
         public required SpaceType spaceType { get; set; }
         [Column(TypeName = "varchar")]
@@ -28,5 +30,6 @@ namespace api.Models.Entity.NormalDB
         //references
         public virtual UserVehicles vehicle { get; set; }
         public virtual ParkingLots lot { get; set; }
+        public virtual Payments payment { get; set; }
     }
 }

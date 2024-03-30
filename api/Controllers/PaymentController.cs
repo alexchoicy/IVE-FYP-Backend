@@ -84,46 +84,46 @@ namespace api.Controllers
 
         }
 
-        //simple put to make payment
-        [HttpPut("{paymentId}")]
-        public IActionResult Makepayment(int paymentId, [FromBody] MakePaymentRequestDto makePaymentRequestDto)
-        {
-            try
-            {
-                if (httpContextAccessor.HttpContext?.User == null)
-                {
-                    throw new TokenInvalidException("You are unauthorized");
-                }
-                if (!ModelState.IsValid)
-                {
-                    throw new RequestInvalidException("Invalid Request Model");
-                }
-
-                bool success = paymentServices.MakePayment(paymentId, makePaymentRequestDto);
-
-                if (success)
-                {
-                    return Ok("Payment Success");
-                }
-                else
-                {
-                    return BadRequest("Payment Failed");
-                }
-            }
-            catch (RequestInvalidException ex)
-            {
-                return BadRequest(ex);
-            }
-            catch (TokenInvalidException ex)
-            {
-                return Unauthorized(ex);
-            }
-            catch (PaymentNotFoundException ex)
-            {
-                return NotFound(ex);
-            }
-
-        }
+        // //simple put to make payment
+        // [HttpPut("{paymentId}")]
+        // public IActionResult Makepayment(int paymentId, [FromBody] MakePaymentRequestDto makePaymentRequestDto)
+        // {
+        //     try
+        //     {
+        //         if (httpContextAccessor.HttpContext?.User == null)
+        //         {
+        //             throw new TokenInvalidException("You are unauthorized");
+        //         }
+        //         if (!ModelState.IsValid)
+        //         {
+        //             throw new RequestInvalidException("Invalid Request Model");
+        //         }
+        //
+        //         bool success = paymentServices.MakePayment(paymentId, makePaymentRequestDto);
+        //
+        //         if (success)
+        //         {
+        //             return Ok("Payment Success");
+        //         }
+        //         else
+        //         {
+        //             return BadRequest("Payment Failed");
+        //         }
+        //     }
+        //     catch (RequestInvalidException ex)
+        //     {
+        //         return BadRequest(ex);
+        //     }
+        //     catch (TokenInvalidException ex)
+        //     {
+        //         return Unauthorized(ex);
+        //     }
+        //     catch (PaymentNotFoundException ex)
+        //     {
+        //         return NotFound(ex);
+        //     }
+        //
+        // }
 
     }
 }

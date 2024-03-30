@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Enums;
 using api.Exceptions;
 using api.Models.Request;
 using api.Models.Respone;
@@ -29,7 +30,7 @@ namespace api.Controllers
 
 
         [HttpGet]
-        public IActionResult GetReservations(int? parkingLotId, int? userId, int? vehicleId)
+        public async Task<IActionResult> GetReservations(int? parkingLotId, int? userId, int? vehicleId)
         {
             try
             {
@@ -51,7 +52,7 @@ namespace api.Controllers
                 IEnumerable<ReservationResponseDto> reservations;
                 if (userId != null)
                 {
-                    reservations = reservationServices.getReservationsByUserID(userId.Value);
+                    reservations = await reservationServices.getReservationsByUserID(userId.Value);
                 }
                 else if (parkingLotId != null)
                 {
@@ -80,7 +81,7 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateReservation([FromBody] CreateReservationRequestDto createReservationRequestDto)
+        public async Task<IActionResult> CreateReservation([FromBody] CreateReservationRequestDto createReservationRequestDto)
         {
             try
             {
@@ -97,7 +98,7 @@ namespace api.Controllers
                 {
                     throw new TokenInvalidException("The Token is invalid");
                 }
-                bool success = reservationServices.createReservation(int.Parse(tokenUserid), createReservationRequestDto);
+                bool success = await reservationServices.createReservation(int.Parse(tokenUserid), createReservationRequestDto);
                 return Ok(success);
             }
             catch (TokenInvalidException ex)
@@ -164,7 +165,18 @@ namespace api.Controllers
             return Ok(reservationId);
         }
 
+        [HttpPost("{reservationId}/payment")]
+        public IActionResult MakePayment(int reservationId, [FromBody] MakePaymentRequestDto makePaymentRequestDto)
+        {
+            bool tryParse = Enum.TryParse(makePaymentRequestDto.paymentMethodType, out PaymentMethodType paymentMethodType);
+            if (!tryParse)
+            {
+                return BadRequest("Invalid payment method");
+            }
 
+            string result = reservationServices.MakeReservationPayment(reservationId, paymentMethodType);
+            return Ok(result);
+        }
 
     }
 }

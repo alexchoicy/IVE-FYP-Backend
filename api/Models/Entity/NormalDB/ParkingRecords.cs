@@ -27,7 +27,7 @@ namespace api.Models.Entity.NormalDB
         public required int sessionID { get; set; }
 
         //references
-        public virtual Reservations reservation { get; set; }
+        public virtual Reservations? reservation { get; set; }
         public virtual ParkingLots parkingLot { get; set; }
         public virtual Payments payment { get; set; }
     }
