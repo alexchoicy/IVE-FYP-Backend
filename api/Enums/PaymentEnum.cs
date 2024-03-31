@@ -21,7 +21,8 @@ namespace api.Enums
     {
         CreditCard,
         Cash,
-        DebitCard,
+        MasterCard,
+        VisaCard,
         ApplePay,
         GooglePay,
         SamsungPay,
