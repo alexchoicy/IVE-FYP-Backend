@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace api.Models.Respone
 {
-    public class AuthResponeDto
+    public class AuthResponseDto
     {
         public string? token { get; set; }
         public required string userName { get; set; }

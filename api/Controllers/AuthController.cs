@@ -21,7 +21,7 @@ namespace api.Controllers
         }
 
         [HttpPost("login")]
-        public ActionResult<ApiResponse<AuthResponeDto>> Login([FromBody] LoginRequestDto loginRequestDto)
+        public ActionResult<ApiResponse<AuthResponseDto>> Login([FromBody] LoginRequestDto loginRequestDto)
         {
             try
             {
@@ -29,7 +29,7 @@ namespace api.Controllers
                 {
                     throw new RequestInvalidException("Request is invalid");
                 }
-                AuthResponeDto? data = authServices.login(loginRequestDto);
+                AuthResponseDto? data = authServices.login(loginRequestDto);
                 return Ok(data);
             }
             catch (UserNotFoundException ex)
@@ -54,7 +54,7 @@ namespace api.Controllers
             }
         }
         [HttpPost("register")]
-        public ActionResult<ApiResponse<AuthResponeDto>> Register([FromBody] RegisterRequestDto registerRequestDto)
+        public ActionResult<ApiResponse<AuthResponseDto>> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace api.Controllers
                 {
                     throw new RequestInvalidException("Request is invalid");
                 }
-                AuthResponeDto? data = authServices.register(registerRequestDto);
+                AuthResponseDto? data = authServices.register(registerRequestDto);
                 return Created("", data);
             }
             catch (UserAlreadyExistException ex)

@@ -193,7 +193,8 @@ namespace api.Services
                     },
                     reservationStatus = r.reservationStatus,
                     createdTime = r.createdAt,
-                    cancelledTime = r.canceledAt
+                    cancelledTime = r.canceledAt,
+                    status = r.reservationStatus.ToString()
                 }).FirstOrDefault();
 
             if (reservation == null)

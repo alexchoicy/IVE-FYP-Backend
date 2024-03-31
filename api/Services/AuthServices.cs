@@ -17,8 +17,8 @@ namespace api.Services
 {
     public interface IAuthServices
     {
-        AuthResponeDto? login(LoginRequestDto loginRequestDto);
-        AuthResponeDto? register(RegisterRequestDto registerRequestDto);
+        AuthResponseDto? login(LoginRequestDto loginRequestDto);
+        AuthResponseDto? register(RegisterRequestDto registerRequestDto);
         bool resetPassword(ResetPasswordRequestDto resetPasswordRequestDto);
         bool resetPasswordVeify(ResetPasswordVeifyRequestDto resetPasswordVeifyRequestDto);
         (StaffResponseDto?, string) AdminLogin(LoginRequestDto loginRequestDto);
@@ -40,7 +40,7 @@ namespace api.Services
             this.config = config;
         }
 
-        public AuthResponeDto? login(LoginRequestDto loginRequestDto)
+        public AuthResponseDto? login(LoginRequestDto loginRequestDto)
         {
 
 
@@ -96,7 +96,7 @@ namespace api.Services
                 normalDataBaseContext.SaveChanges();
             }
 
-            AuthResponeDto response = new AuthResponeDto
+            AuthResponseDto response = new AuthResponseDto
             {
                 token = jwtServices.CreateToken(user),
                 userName = user.userName,
@@ -109,7 +109,7 @@ namespace api.Services
             return response;
         }
 
-        public AuthResponeDto? register(RegisterRequestDto registerRequestDto)
+        public AuthResponseDto? register(RegisterRequestDto registerRequestDto)
         {
             Users? user = normalDataBaseContext.Users.FirstOrDefault(x => x.userName == registerRequestDto.username);
 
@@ -139,7 +139,7 @@ namespace api.Services
             normalDataBaseContext.Users.Add(newUser);
             normalDataBaseContext.SaveChanges();
 
-            AuthResponeDto response = new AuthResponeDto
+            AuthResponseDto response = new AuthResponseDto
             {
                 token = jwtServices.CreateToken(newUser),
                 userName = newUser.userName,
