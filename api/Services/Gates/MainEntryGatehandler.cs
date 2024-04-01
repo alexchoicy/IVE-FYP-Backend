@@ -15,13 +15,18 @@ namespace api.Services.Gates
         public MainEntryGatehandler(IServiceScopeFactory serviceScopeFactory) : base(serviceScopeFactory)
         {
         }
+
         public override async Task HandleGateEvent(LprReceiveModel lprReceiveModel)
         {
             using (var scope = serviceScopeFactory.CreateScope())
             {
-                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope); UserVehicles? vehicle = normalDataBaseContext.UserVehicles.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense);
+                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope);
+                UserVehicles? vehicle =
+                    normalDataBaseContext.UserVehicles.FirstOrDefault(x =>
+                        x.vehicleLicense == lprReceiveModel.vehicleLicense);
                 Console.WriteLine("Vehicle: " + vehicle.vehicleID);
-                ParkingLots? parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
+                ParkingLots? parkingLot =
+                    normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
 
                 if (parkingLot == null)
                 {
@@ -41,7 +46,9 @@ namespace api.Services.Gates
                 //allow get in even the space if full for walkin
                 Reservations? reservations;
                 reservations = GetReservations(normalDataBaseContext, lprReceiveModel, vehicle, SpaceType.REGULAR);
-                reservations = reservations == null ? GetReservations(normalDataBaseContext, lprReceiveModel, vehicle, SpaceType.ELECTRIC) : reservations;
+                reservations = reservations == null
+                    ? GetReservations(normalDataBaseContext, lprReceiveModel, vehicle, SpaceType.ELECTRIC)
+                    : reservations;
 
 
                 if (reservations != null)
@@ -55,11 +62,13 @@ namespace api.Services.Gates
             }
         }
 
-        protected override async Task HandleWalkin(LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles? vehicle = null)
+        protected override async Task HandleWalkin(LprReceiveModel lprReceiveModel, ParkingLots parkingLot,
+            UserVehicles? vehicle = null)
         {
             using (var scope = serviceScopeFactory.CreateScope())
             {
-                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope); if (parkingLot.avaiableRegularSpaces < parkingLot.reservableOnlyRegularSpaces)
+                NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope);
+                if (parkingLot.avaiableRegularSpaces < parkingLot.reservableOnlyRegularSpaces)
                 {
                     Console.WriteLine("Parking lot is full");
                     return;
@@ -72,15 +81,18 @@ namespace api.Services.Gates
                 int sessionID = await createSessionID(normalDataBaseContext, lprReceiveModel);
 
                 CreatePaymentRecord(lprReceiveModel, sessionID, SpaceType.REGULAR, vehicle);
-
             }
         }
 
-        protected override async Task HandleReservation(LprReceiveModel lprReceiveModel, ParkingLots parkingLot, UserVehicles vehicle, Reservations reservations)
+        protected override async Task HandleReservation(LprReceiveModel lprReceiveModel, ParkingLots parkingLot,
+            UserVehicles vehicle, Reservations reservations)
         {
             using (var scope = serviceScopeFactory.CreateScope())
             {
                 NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope);
+                reservations.reservationStatus = ReservationStatus.ACTIVE;
+                normalDataBaseContext.Reservations.Update(reservations);
+                await normalDataBaseContext.SaveChangesAsync();
                 if (reservations.spaceType == SpaceType.ELECTRIC)
                 {
                     parkingLot.avaiableRegularSpaces--;
@@ -90,7 +102,8 @@ namespace api.Services.Gates
 
                 int sessionID = await createSessionID(normalDataBaseContext, lprReceiveModel);
 
-                CreatePaymentRecord(lprReceiveModel, sessionID, SpaceType.REGULAR, vehicle, reservations.spaceType == SpaceType.REGULAR ? reservations : null);
+                CreatePaymentRecord(lprReceiveModel, sessionID, SpaceType.REGULAR, vehicle,
+                    reservations.spaceType == SpaceType.REGULAR ? reservations : null);
             }
         }
     }
