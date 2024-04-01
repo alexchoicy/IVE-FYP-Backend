@@ -50,13 +50,13 @@ namespace api.Controllers
                 }
 
                 IEnumerable<ReservationResponseDto> reservations;
-                if (userId != null)
+               if (parkingLotId != null)
+                {
+                    reservations = await reservationServices.getReservationsByLotID(parkingLotId.Value);
+                }
+                else if (userId != null)
                 {
                     reservations = await reservationServices.getReservationsByUserID(userId.Value);
-                }
-                else if (parkingLotId != null)
-                {
-                    reservations = reservationServices.getReservationsByLotID(parkingLotId.Value);
                 }
 
                 else if (vehicleId != null)

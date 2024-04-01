@@ -16,7 +16,7 @@ namespace api.Services
     public interface IReservationServices
     {
         Task<IEnumerable<ReservationResponseDto>> getReservationsByUserID(int userID);
-        IEnumerable<ReservationResponseDto> getReservationsByLotID(int lotID);
+        Task<IEnumerable<ReservationResponseDto>> getReservationsByLotID(int lotID);
         IEnumerable<ReservationResponseDto> getReservationsByVehicleID(int vehicleID);
         ReservationResponseDto getReservationByID(int reservationID);
         Task<bool> createReservation(int userID, CreateReservationRequestDto createReservationRequestDto);
@@ -49,7 +49,48 @@ namespace api.Services
                     vehicleLicense = r.vehicle.vehicleLicense,
                     startTime = r.startTime,
                     endTime = r.endTime,
-                    // paymentID = r.paymentID,
+                    paymentID = r.payment.paymentID,
+                    payment = new PaymentResponseDto
+                    {
+                        paymentMethod = r.payment.paymentMethod.ToString(),
+                        amount = r.payment.amount,
+                        paymentID = r.payment.paymentID,
+                        paymentIssuedAt = r.payment.createdAt,
+                        paymentStatus = r.payment.paymentStatus.ToString(),
+                        paymentType = r.payment.paymentType.ToString(),
+                        relatedID = r.payment.relatedID,
+                        userId = r.payment.userID,
+                        paymentTime = r.payment.paymentTime
+                    },
+                    reservationStatus = r.reservationStatus,
+                    reservationStatusString = r.reservationStatus.ToString(),
+                    createdTime = r.createdAt,
+                    cancelledTime = r.canceledAt,
+                    status = r.reservationStatus.ToString()
+                }).ToListAsync();
+
+            return reservations;
+        }
+
+        public async Task<IEnumerable<ReservationResponseDto>> getReservationsByLotID(int lotID)
+        {
+            Console.WriteLine("lot" + lotID);
+            IEnumerable<ReservationResponseDto> reservations = await normalDataBaseContext.Reservations
+                .Where(r => r.lotID == lotID)
+                .Include(r => r.lot)
+                .OrderByDescending(r => r.createdAt)
+                .ThenBy(r => r.reservationStatus == ReservationStatus.PENDING)
+                .Select(r => new ReservationResponseDto
+                {
+                    reservationID = r.reservationID,
+                    lotID = r.lotID,
+                    lotName = r.lot.name,
+                    spaceType = r.spaceType.ToString(),
+                    vehicleID = r.vehicleID,
+                    vehicleLicense = r.vehicle.vehicleLicense,
+                    startTime = r.startTime,
+                    endTime = r.endTime,
+                    paymentID = r.payment.paymentID,
                     payment = new PaymentResponseDto
                     {
                         paymentMethod = r.payment.paymentMethod.ToString(),
@@ -66,69 +107,7 @@ namespace api.Services
                     createdTime = r.createdAt,
                     cancelledTime = r.canceledAt,
                     status = r.reservationStatus.ToString()
-                }).ToListAsync();
-
-            // foreach (var reservation in reservations)
-            // {
-            //     Payments payment = await normalDataBaseContext.Payments.FirstOrDefaultAsync(p => p.paymentID == reservation.paymentID);
-            //     reservation.payment = new PaymentResponseDto
-            //     {
-            //         paymentMethod = payment.paymentMethod.ToString(),
-            //         amount = payment.amount,
-            //         paymentID = payment.paymentID,
-            //         paymentIssuedAt = payment.createdAt,
-            //         paymentStatus = payment.paymentStatus.ToString(),
-            //         paymentType = payment.paymentType.ToString(),
-            //         relatedID = payment.relatedID,
-            //         userId = payment.userID,
-            //         paymentTime = payment.paymentTime
-            //     };
-            //     reservation.payment = new PaymentResponseDto
-            //     {
-            //         paymentMethod = payment.paymentMethod.ToString(),
-            //         amount = payment.amount,
-            //         paymentID = payment.paymentID,
-            //         paymentIssuedAt = payment.createdAt,
-            //         paymentStatus = payment.paymentStatus.ToString(),
-            //         paymentType = payment.paymentType.ToString(),
-            //         relatedID = payment.relatedID,
-            //         userId = payment.userID,
-            //         paymentTime = payment.paymentTime
-            //     };
-            // }
-            return reservations;
-        }
-
-        public IEnumerable<ReservationResponseDto> getReservationsByLotID(int lotID)
-        {
-            IEnumerable<ReservationResponseDto> reservations = normalDataBaseContext.Reservations
-                .Where(r => r.lotID == lotID)
-                .Select(r => new ReservationResponseDto
-                {
-                    reservationID = r.reservationID,
-                    lotID = r.lotID,
-                    lotName = r.lot.name,
-                    spaceType = r.spaceType.ToString(),
-                    vehicleID = r.vehicleID,
-                    vehicleLicense = r.vehicle.vehicleLicense,
-                    startTime = r.startTime,
-                    endTime = r.endTime,
-                    payment = new PaymentResponseDto
-                    {
-                        paymentMethod = r.payment.paymentMethod.ToString(),
-                        amount = r.payment.amount,
-                        paymentID = r.payment.paymentID,
-                        paymentIssuedAt = r.payment.createdAt,
-                        paymentStatus = r.payment.paymentStatus.ToString(),
-                        paymentType = r.payment.paymentType.ToString(),
-                        relatedID = r.payment.relatedID,
-                        userId = r.payment.userID,
-                        paymentTime = r.payment.paymentTime
-                    },
-                    reservationStatus = r.reservationStatus,
-                    createdTime = r.createdAt,
-                    cancelledTime = r.canceledAt
-                });
+                }).ToListAsync<ReservationResponseDto>();
             return reservations;
         }
 

@@ -20,6 +20,7 @@ namespace api.Models.Respone
         public int paymentID { get; set; }
         public PaymentResponseDto payment { get; set; }
         public ReservationStatus reservationStatus { get; set; }
+        public string reservationStatusString { get; set; }
         public DateTime createdTime { get; set; }
         public DateTime? cancelledTime { get; set; }
     }
