@@ -11,6 +11,7 @@ namespace api.Models.Respone
         public int userId { get; set; }
         public decimal amount { get; set; }
         public string paymentType { get; set; }
+        public string paymentMethodType { get; set; }
         public int relatedID { get; set; }
         public string paymentMethod { get; set; }
         public string paymentStatus { get; set; }

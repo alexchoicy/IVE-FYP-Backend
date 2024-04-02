@@ -14,4 +14,10 @@ namespace api.Models.Request
         public required DateTime endTime { get; set; }
         public required string spaceType { get; set; }
     }
+    public class EditReservationRequestDto
+    {
+        public DateTime startTime { get; set; }
+        public DateTime endTime { get; set; }
+        public string spaceType { get; set; }
+    }
 }

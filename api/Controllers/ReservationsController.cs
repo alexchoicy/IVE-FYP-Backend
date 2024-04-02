@@ -178,5 +178,65 @@ namespace api.Controllers
             return Ok(result);
         }
 
+        [HttpPut("{reservationId}/cancel")]
+        public IActionResult CancelReservation(int reservationId)
+        {
+            try
+            {
+                bool success = reservationServices.cancelReservation(reservationId);
+                return Ok(success);
+            }
+            catch (ReservationNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+            catch (ReservationStatusConflictException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (ReservationTimeConflictException ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        
+        [HttpPut("{reservationId}/edit")]
+        public IActionResult EditReservation(int reservationId, [FromBody] EditReservationRequestDto editReservationRequestDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request model");
+            }
+
+            try
+            {
+                bool success = reservationServices.editReservation(reservationId, editReservationRequestDto);
+                return Ok(success);
+            }
+            catch (ReservationNotFoundException ex)
+            {
+                return NotFound(ex);
+            }
+            catch (ReservationStatusConflictException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (ReservationTimeConflictException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (InvalidSpaceTypeException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (NoAvailableSpacesException ex)
+            {
+                return BadRequest(ex);
+            }
+            catch (InvalidReservationTimeException ex)
+            {
+                return BadRequest(ex);
+            }
+        }
     }
 }

@@ -21,6 +21,8 @@ namespace api.Services
         ReservationResponseDto getReservationByID(int reservationID);
         Task<bool> createReservation(int userID, CreateReservationRequestDto createReservationRequestDto);
         string MakeReservationPayment(int id, PaymentMethodType paymentMethodType);
+        bool cancelReservation(int reservationID);
+        bool editReservation(int reservationID, EditReservationRequestDto editReservationRequestDto);
     }
     public class ReservationServices : IReservationServices
     {
@@ -147,6 +149,7 @@ namespace api.Services
         public ReservationResponseDto getReservationByID(int reservationID)
         {
             ReservationResponseDto? reservation = normalDataBaseContext.Reservations.Where(r => r.reservationID == reservationID)
+                .Include(r => r.payment)
                 .Select(r => new ReservationResponseDto
                 {
                     reservationID = r.reservationID,
@@ -166,6 +169,7 @@ namespace api.Services
                         paymentIssuedAt = r.payment.createdAt,
                         paymentStatus = r.payment.paymentStatus.ToString(),
                         paymentType = r.payment.paymentType.ToString(),
+                        paymentMethodType = r.payment.paymentMethodType.ToString(),
                         relatedID = r.payment.relatedID,
                         userId = r.payment.userID,
                         paymentTime = r.payment.paymentTime
@@ -241,7 +245,7 @@ namespace api.Services
                             (r.startTime >= roundedStartTime && r.endTime <= roundedEndTime)))
                 .ToList();
 
-            if (reservations.Count() > 0)
+            if (reservations.Count() > 0 && reservations.Any(r => r.reservationStatus != ReservationStatus.CANCELLED))
             {
                 throw new ReservationTimeConflictException("Reservation time conflict");
             }
@@ -345,6 +349,175 @@ namespace api.Services
             normalDataBaseContext.SaveChanges();
             
             return "success";
+        }
+        
+        public  bool cancelReservation(int reservationID)
+        {
+            Reservations? reservation = normalDataBaseContext.Reservations
+                .Include(r => r.payment)
+                .FirstOrDefault(r => r.reservationID == reservationID);
+
+            if (reservation == null)
+            {
+                throw new ReservationNotFoundException("Reservation not found");
+            }
+
+            if (reservation.reservationStatus == ReservationStatus.ACTIVE || reservation.reservationStatus == ReservationStatus.COMPLETED)
+            {
+                throw new ReservationStatusConflictException("The reservation is active or completed");
+            }
+            
+            if (reservation.reservationStatus == ReservationStatus.CANCELLED)
+            {
+                throw new ReservationStatusConflictException("Reservation already cancelled");
+            }
+
+            if (reservation.reservationStatus == ReservationStatus.PAID)
+            {
+                throw new ReservationStatusConflictException("Reservation already paid");
+            }
+
+            if (reservation.reservationStatus == ReservationStatus.PENDING)
+            {
+                if (reservation.startTime.AddHours(1) < DateTime.Now)
+                {
+                    throw new ReservationTimeConflictException("Reservation time conflict");
+                }
+            }
+
+            reservation.reservationStatus = ReservationStatus.CANCELLED;
+            reservation.canceledAt = DateTime.Now;
+            normalDataBaseContext.Reservations.Update(reservation);
+            normalDataBaseContext.SaveChanges();
+
+            return true;
+        }
+
+        public bool editReservation(int reservationID, EditReservationRequestDto editReservationRequestDto)
+        {
+            Reservations? reservation = normalDataBaseContext.Reservations
+                .Include(r => r.payment)
+                .Include(r => r.lot)
+                .Include(r => r.vehicle)
+                .FirstOrDefault(r => r.reservationID == reservationID);
+
+            if (reservation == null)
+            {
+                throw new ReservationNotFoundException("Reservation not found");
+            }
+            
+            if (reservation.reservationStatus == ReservationStatus.CANCELLED)
+            {
+                throw new ReservationStatusConflictException("Reservation already cancelled");
+            }
+            
+            // if (reservation.reservationStatus == ReservationStatus.PAID)
+            // {
+            //     throw new ReservationStatusConflictException("Reservation already paid");
+            // }
+            
+            if (reservation.reservationStatus == ReservationStatus.PENDING)
+            {
+                if (reservation.startTime.AddHours(1) < DateTime.Now)
+                {
+                    throw new ReservationTimeConflictException("Reservation time conflict");
+                }
+            }
+            
+            DateTime roundedStartTime = new DateTime(editReservationRequestDto.startTime.Year, editReservationRequestDto.startTime.Month, editReservationRequestDto.startTime.Day, editReservationRequestDto.startTime.Hour, 0, 0);
+            DateTime roundedEndTime = new DateTime(editReservationRequestDto.endTime.Year, editReservationRequestDto.endTime.Month, editReservationRequestDto.endTime.Day, editReservationRequestDto.endTime.Hour, 0, 0);
+            
+            if (roundedStartTime < DateTime.Now || roundedEndTime < DateTime.Now || roundedStartTime > roundedEndTime)
+            {
+                throw new InvalidReservationTimeException("Invalid reservation time");
+            }
+            
+            if ((roundedEndTime - roundedStartTime).TotalHours > reservation.lot.maxReservationHours)
+            {
+                throw new InvalidReservationTimeException("Reservation time exceeds the maximum allowed time");
+            }
+            
+            if (editReservationRequestDto.startTime.Minute != 0 || editReservationRequestDto.endTime.Minute != 0)
+            {
+                throw new InvalidReservationTimeException("Reservation start and end time must be at the top of the hour");
+            }
+            
+            bool success = Enum.TryParse(editReservationRequestDto.spaceType.ToString(), out Enums.SpaceType spaceType);
+            
+            if (!success)
+            {
+                throw new InvalidSpaceTypeException("Invalid space type, must be REGULAR or ELECTRIC");
+            }
+            
+            if (spaceType == Enums.SpaceType.ELECTRIC && reservation.vehicle.vehicleType != Enums.VehicleTypes.ELECTRIC)
+            {
+                throw new InvalidSpaceTypeException("Incorrect vehicle type for electric space type");
+            }
+            
+            
+            
+            HourlyReservationCount oldsession = normalDataBaseContext.HourlyReservationCounts.FirstOrDefault(p => p.lotID == reservation.lotID && p.dateTime == reservation.startTime);
+            
+            if (oldsession != null)
+            {
+                switch (reservation.spaceType)
+                {
+                    case Enums.SpaceType.REGULAR:
+                        oldsession.regularSpaceCount--;
+                        break;
+                    case Enums.SpaceType.ELECTRIC:
+                        oldsession.electricSpaceCount--;
+                        break;
+                }
+            }
+            
+            HourlyReservationCount newsession = normalDataBaseContext.HourlyReservationCounts.FirstOrDefault(p => p.lotID == reservation.lotID && p.dateTime == roundedStartTime);
+
+            if (newsession != null)
+            {
+                switch (spaceType)
+                {
+                    case Enums.SpaceType.REGULAR:
+                        if (newsession.regularSpaceCount == reservation.lot.regularSpaces)
+                        {
+                            throw new NoAvailableSpacesException("No available spaces at " + roundedStartTime.ToString("yyyy-MM-dd HH:mm:ss") + " for regular spaces");
+                        }
+                        newsession.regularSpaceCount++;
+                        break;
+                    case Enums.SpaceType.ELECTRIC:
+                        if (newsession.electricSpaceCount == reservation.lot.electricSpaces)
+                        {
+                            throw new NoAvailableSpacesException("No available spaces at " + roundedStartTime.ToString("yyyy-MM-dd HH:mm:ss") + " for electric spaces");
+                        }
+                        newsession.electricSpaceCount++;
+                        break;
+                }
+                normalDataBaseContext.HourlyReservationCounts.Update(newsession);
+            }
+            else
+            {
+                ParkingLots parkingLot = normalDataBaseContext.ParkingLots.FirstOrDefault(pl => pl.lotID == reservation.lotID);
+                
+                HourlyReservationCount newHourlyAvailableSpaces = hourlyAvaiableSpaceServices.CreateHourlyAvaiableSpace(parkingLot, roundedStartTime);
+                switch (spaceType)
+                {
+                    case Enums.SpaceType.REGULAR:
+                        newHourlyAvailableSpaces.regularSpaceCount++;
+                        break;
+                    case Enums.SpaceType.ELECTRIC:
+                        newHourlyAvailableSpaces.electricSpaceCount++;
+                        break;
+                }
+                normalDataBaseContext.HourlyReservationCounts.Add(newHourlyAvailableSpaces);
+            }
+            
+            reservation.spaceType = spaceType;
+            reservation.startTime = roundedStartTime;
+            reservation.endTime = roundedEndTime;
+            normalDataBaseContext.Reservations.Update(reservation);
+            normalDataBaseContext.SaveChanges();
+
+            return true;
         }
     }
 }

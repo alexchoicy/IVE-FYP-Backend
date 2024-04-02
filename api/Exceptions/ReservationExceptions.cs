@@ -46,5 +46,14 @@ namespace api.Exceptions
         {
         }
     }
-
+    
+    public class ReservationStatusConflictException : BaseCustomExceptions
+    {
+        public ReservationStatusConflictException(string message) : base(message)
+        {
+        }
+    }
+    
+    
+    
 }
