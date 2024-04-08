@@ -173,5 +173,15 @@ namespace api.Controllers
             Response.Cookies.Delete("token");
             return Ok("Logout success");
         }
+
+        [HttpGet("check")]
+        public ActionResult Check()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                return Ok("Authenticated");
+            }
+            return Unauthorized("Not Authenticated");
+        }
     }
 }
