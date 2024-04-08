@@ -20,7 +20,7 @@ namespace api.Controllers
             this.parkingRecordServices = parkingRecordServices;
             this.adminServices = adminServices;
         }
-        
+
         [HttpGet("parkingrecords/{sessionid}")]
         public async Task<IActionResult> GetParkingRecord(int sessionid)
         {
@@ -34,21 +34,21 @@ namespace api.Controllers
                 return NotFound(ex);
             }
         }
-        
+
         [HttpGet("dashboard_data")]
         public IActionResult GetDashboardData()
         {
             AdminDashBoardResponseDto dashboardData = adminServices.GetDashboardData(1);
             return Ok(dashboardData);
         }
-        
+
         [HttpGet("analytics")]
-        public async Task< IActionResult> GetAnalytics()    
+        public async Task<IActionResult> GetAnalytics()
         {
             AdminAnalyticsResponseDto analyticsData = await adminServices.GetAnalyticsData(1);
             return Ok(analyticsData);
         }
-        
+
         [HttpGet("payment")]
         public async Task<IActionResult> GetPaymentData()
         {
