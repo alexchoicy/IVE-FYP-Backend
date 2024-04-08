@@ -30,7 +30,7 @@ services:
       - 25763:8080
       - 25664:5000
     environment:
-      - TZ="Asia/Taipei"
+      - TZ=Asia/Taipei
     #   - ASPNETCORE_ENVIRONMENT=Production
     volumes:
       - ${APPSETTINGS}:/app/appsettings.json:ro
