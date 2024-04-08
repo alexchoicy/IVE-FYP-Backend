@@ -1,5 +1,6 @@
 ﻿using api.Enums;
 using api.Models;
+using api.Models.Entity.NormalDB;
 using api.Models.Respone;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -286,20 +287,19 @@ public class AdminServices : IAdminServices
 
     public async Task<ParkingTimeAnalysis> GetParkingTimeAnalysis(int lotID, DateTime startTime, DateTime endTime)
     {
-        double avaerageParkingTime = normalDataBaseContext.ParkingRecords
+        double avaerageParkingTime = 0;
+        double maxParkingTime = 0;
+        double minParkingTime = 0;
+        IEnumerable<ParkingRecords> records = normalDataBaseContext.ParkingRecords
             .Where(p => p.lotID == lotID && p.exitTime != null && p.entryTime >= startTime && p.exitTime <= endTime)
-            .AsEnumerable()
-            .Average(p => (p.exitTime - p.entryTime).Value.TotalMinutes);
+            .AsEnumerable();
 
-        double maxParkingTime = normalDataBaseContext.ParkingRecords
-            .Where(p => p.lotID == lotID && p.exitTime != null && p.entryTime >= startTime && p.exitTime <= endTime)
-            .AsEnumerable()
-            .Max(p => (p.exitTime - p.entryTime).Value.TotalMinutes);
-
-        double minParkingTime = normalDataBaseContext.ParkingRecords
-            .Where(p => p.lotID == lotID && p.exitTime != null && p.entryTime >= startTime && p.exitTime <= endTime)
-            .AsEnumerable()
-            .Min(p => (p.exitTime - p.entryTime).Value.TotalMinutes);
+        if (records.Any())
+        {
+            avaerageParkingTime = records.Average(p => (p.exitTime - p.entryTime).Value.TotalMinutes);
+            maxParkingTime = records.Max(p => (p.exitTime - p.entryTime).Value.TotalMinutes);
+            minParkingTime = records.Min(p => (p.exitTime - p.entryTime).Value.TotalMinutes);
+        };
 
         return new ParkingTimeAnalysis
         {
@@ -312,19 +312,19 @@ public class AdminServices : IAdminServices
     public async Task<ReservationTimeAnalysis> GetReservationTimeAnalysis(int lotID, DateTime startTime,
         DateTime endTime)
     {
-        double averageReservationTime = normalDataBaseContext.Reservations
-            .Where(p => p.lotID == lotID && p.startTime >= startTime && p.endTime <= endTime)
-            .AsEnumerable()
-            .Average(p => (p.endTime - p.startTime).TotalMinutes);
+        double averageReservationTime = 0;
+        double maxReservationTime = 0;
+        double minReservationTime = 0;
+        IEnumerable<Reservations> records = normalDataBaseContext.Reservations
+                    .Where(p => p.lotID == lotID && p.startTime >= startTime && p.endTime <= endTime)
+                    .AsEnumerable();
 
-        double maxReservationTime = normalDataBaseContext.Reservations
-            .Where(p => p.lotID == lotID && p.startTime >= startTime && p.endTime <= endTime)
-            .AsEnumerable()
-            .Max(p => (p.endTime - p.startTime).TotalMinutes);
-        double minReservationTime = normalDataBaseContext.Reservations
-            .Where(p => p.lotID == lotID && p.startTime >= startTime && p.endTime <= endTime)
-            .AsEnumerable()
-            .Min(p => (p.endTime - p.startTime).TotalMinutes);
+        if (records.Any())
+        {
+            averageReservationTime = records.Average(p => (p.endTime - p.startTime).TotalMinutes);
+            maxReservationTime = records.Max(p => (p.endTime - p.startTime).TotalMinutes);
+            minReservationTime = records.Min(p => (p.endTime - p.startTime).TotalMinutes);
+        }
 
         return new ReservationTimeAnalysis
         {
