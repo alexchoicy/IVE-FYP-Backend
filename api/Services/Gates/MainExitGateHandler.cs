@@ -54,8 +54,9 @@ namespace api.Services.Gates
                 if (lastPayment.paymentStatus == PaymentStatus.Generated)
                 {
                     lastPayment.amount = price;
-                    lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
-                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? DateTime.Now : null;
+                    //Mark the paymnet is paid if it didn't make a pre payment before exit for demo purpose
+                    lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Completed;
+                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? DateTime.Now : DateTime.Now;
                     lastPayment.paymentMethodType = lastPayment.paymentStatus == PaymentStatus.Completed ? PaymentMethodType.Free : PaymentMethodType.Cash;
                     lastPayment.paymentMethod = lastPayment.paymentStatus == PaymentStatus.Completed ? PaymentMethod.Free : PaymentMethod.PaymentMachine;
                     normalDataBaseContext.Payments.Update(lastPayment);
