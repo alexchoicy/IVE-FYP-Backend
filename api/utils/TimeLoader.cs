@@ -12,29 +12,25 @@ namespace api.utils
 
         public static DateTime GetTime()
         {
-            if (File.Exists(folderPath))
-            {
-                string json = File.ReadAllText(folderPath);
-                TimeConfig timeConfig = JsonConvert.DeserializeObject<TimeConfig>(json);
-                if (timeConfig.useCustomTime)
-                {
-                    return DateTime.Parse(timeConfig.customDateTime);
-                }
-                else
-                {
-                    return DateTime.Now;
-                }
-            }
-            else
+            if (!File.Exists(folderPath))
             {
                 return DateTime.Now;
             }
+
+            string json = File.ReadAllText(folderPath);
+            TimeConfig timeConfig = JsonConvert.DeserializeObject<TimeConfig>(json);
+            if (timeConfig.useCustomTime)
+            {
+                return DateTime.Parse(timeConfig.customDateTime);
+            }
+            return DateTime.Now;
+
         }
     }
 
     public class TimeConfig
     {
-        public Boolean useCustomTime { get; set; }
+        public bool useCustomTime { get; set; }
         public string customDateTime { get; set; }
     }
 }
