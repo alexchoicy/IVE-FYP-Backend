@@ -25,7 +25,6 @@ namespace api.utils
             }
 
             string json = File.ReadAllText(folderPath);
-            Console.WriteLine("Time config: " + json);
             TimeConfig timeConfig = JsonConvert.DeserializeObject<TimeConfig>(json);
             if (timeConfig.useCustomTime)
             {
