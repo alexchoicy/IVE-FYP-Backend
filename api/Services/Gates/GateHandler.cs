@@ -93,6 +93,8 @@ namespace api.Services.Gates
                 x.lotID == lprReceiveModel.lotID
                 );
 
+            Console.WriteLine(JsonConvert.SerializeObject(reservations));
+
             if (reservations.Count() == 0)
             {
                 return null;

@@ -127,6 +127,10 @@ namespace api.Services.Gates
 
                 int sessionID = parkingRecords.sessionID;
 
+                parkingLot.avaiableRegularSpaces--;
+                normalDataBaseContext.ParkingLots.Update(parkingLot);
+                await normalDataBaseContext.SaveChangesAsync();
+
                 CreatePaymentRecord(lprReceiveModel, sessionID, SpaceType.REGULAR, vehicles, reservations);
             }
         }

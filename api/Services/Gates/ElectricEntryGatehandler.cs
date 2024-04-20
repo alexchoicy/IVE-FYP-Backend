@@ -123,6 +123,12 @@ namespace api.Services.Gates
 
                 int sessionID = parkingRecords.sessionID;
 
+                reservations.reservationStatus = ReservationStatus.ACTIVE;
+                normalDataBaseContext.Reservations.Update(reservations);
+                parkingLot.avaiableElectricSpaces--;
+                normalDataBaseContext.ParkingLots.Update(parkingLot);
+                await normalDataBaseContext.SaveChangesAsync();
+
                 CreatePaymentRecord(lprReceiveModel, sessionID, SpaceType.ELECTRIC, vehicles, reservations);
             }
         }

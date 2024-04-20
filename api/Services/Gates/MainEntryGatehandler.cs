@@ -89,15 +89,17 @@ namespace api.Services.Gates
             using (var scope = serviceScopeFactory.CreateScope())
             {
                 NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope);
-                reservations.reservationStatus = ReservationStatus.ACTIVE;
-                normalDataBaseContext.Reservations.Update(reservations);
-                await normalDataBaseContext.SaveChangesAsync();
-                if (reservations.spaceType == SpaceType.ELECTRIC)
+
+                if (reservations.spaceType != SpaceType.ELECTRIC)
                 {
-                    parkingLot.avaiableRegularSpaces--;
-                    normalDataBaseContext.ParkingLots.Update(parkingLot);
+                    reservations.reservationStatus = ReservationStatus.ACTIVE;
+                    normalDataBaseContext.Reservations.Update(reservations);
                     await normalDataBaseContext.SaveChangesAsync();
                 }
+
+                parkingLot.avaiableRegularSpaces--;
+                normalDataBaseContext.ParkingLots.Update(parkingLot);
+                await normalDataBaseContext.SaveChangesAsync();
 
                 int sessionID = await createSessionID(normalDataBaseContext, lprReceiveModel);
 
