@@ -33,7 +33,7 @@ services:
       - TZ=Asia/Taipei
     #   - ASPNETCORE_ENVIRONMENT=Production
     volumes:
-      - ${TIMECONFIG}:/app/Config/TimeConfig.json:ro
+      - ${TIMECONFIG}:/app/Config/TimeConfig.json
       - ${APPSETTINGS}:/app/appsettings.json:ro
       - ${APPLOGS}:/app/Logs
 volumes:
