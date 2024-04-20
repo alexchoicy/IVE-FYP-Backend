@@ -24,7 +24,6 @@ namespace api.Services.Gates
                 UserVehicles? vehicle =
                     normalDataBaseContext.UserVehicles.FirstOrDefault(x =>
                         x.vehicleLicense == lprReceiveModel.vehicleLicense);
-                Console.WriteLine("Vehicle: " + vehicle.vehicleID);
                 ParkingLots? parkingLot =
                     normalDataBaseContext.ParkingLots.FirstOrDefault(x => x.lotID == lprReceiveModel.lotID);
 

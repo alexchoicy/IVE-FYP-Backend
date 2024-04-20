@@ -6,6 +6,7 @@ using api.Enums;
 using api.Models;
 using api.Models.Entity.NormalDB;
 using api.Models.LprData;
+using api.utils;
 
 namespace api.Services.Gates
 {
@@ -39,8 +40,8 @@ namespace api.Services.Gates
                 //this only check if it is Electric space
                 Reservations? reservations = normalDataBaseContext.Reservations.FirstOrDefault(
                     x => x.vehicleID == vehicle.vehicleID &&
-                    x.startTime.AddMinutes(maxEarlyTime) <= DateTime.Now &&
-                    x.startTime.AddMinutes(maxLateTime) >= DateTime.Now &&
+                    x.startTime.AddMinutes(maxEarlyTime) <= TimeLoader.GetTime() &&
+                    x.startTime.AddMinutes(maxLateTime) >= TimeLoader.GetTime() &&
                     x.reservationStatus == ReservationStatus.PAID &&
                     x.spaceType == SpaceType.REGULAR &&
                     x.lotID == lprReceiveModel.lotID
@@ -70,7 +71,7 @@ namespace api.Services.Gates
                     return;
                 }
 
-                parkingRecords.exitTime = DateTime.Now;
+                parkingRecords.exitTime = TimeLoader.GetTime();
                 normalDataBaseContext.ParkingRecords.Update(parkingRecords);
                 await normalDataBaseContext.SaveChangesAsync();
 
@@ -83,7 +84,7 @@ namespace api.Services.Gates
                 {
                     lastPayment.amount = price;
                     lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
-                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? DateTime.Now : null;
+                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? TimeLoader.GetTime() : null;
                     lastPayment.paymentMethodType = lastPayment.paymentStatus == PaymentStatus.Completed ? PaymentMethodType.Free : null;
                     lastPayment.paymentMethod = lastPayment.paymentStatus == PaymentStatus.Completed ? PaymentMethod.Free : null;
                     normalDataBaseContext.Payments.Update(lastPayment);
@@ -106,7 +107,7 @@ namespace api.Services.Gates
                 NormalDataBaseContext normalDataBaseContext = GetNormalDataBaseContext(scope);            //Calculate the last record of the vehicle
                 ParkingRecords? parkingRecords = normalDataBaseContext.ParkingRecords.FirstOrDefault(x => x.vehicleLicense == lprReceiveModel.vehicleLicense && x.exitTime == null);
 
-                parkingRecords.exitTime = DateTime.Now;
+                parkingRecords.exitTime = TimeLoader.GetTime();
                 await normalDataBaseContext.SaveChangesAsync();
 
                 decimal price = await CalculateLastRecord(normalDataBaseContext, parkingLot, SpaceType.ELECTRIC, parkingRecords);
@@ -117,7 +118,7 @@ namespace api.Services.Gates
                 {
                     lastPayment.amount = price;
                     lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
-                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? DateTime.Now : null;
+                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? TimeLoader.GetTime() : null;
                     lastPayment.paymentMethodType = lastPayment.paymentStatus == PaymentStatus.Completed ? PaymentMethodType.Free : null;
                     lastPayment.paymentMethod = lastPayment.paymentStatus == PaymentStatus.Completed ? PaymentMethod.Free : null;
                     normalDataBaseContext.Payments.Update(lastPayment);
