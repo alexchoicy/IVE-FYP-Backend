@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using api.Enums;
+using api.utils;
 
 namespace api.Models.Entity.NormalDB
 {
@@ -20,6 +21,6 @@ namespace api.Models.Entity.NormalDB
         public PaymentMethod? paymentMethod { get; set; } = null;
         public required PaymentStatus paymentStatus { get; set; }
 
-        public DateTime createdAt { get; set; } = DateTime.Now;
+        public DateTime createdAt { get; set; } = TimeLoader.GetTime();
     }
 }

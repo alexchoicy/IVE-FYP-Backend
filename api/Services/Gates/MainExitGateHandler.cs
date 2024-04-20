@@ -6,6 +6,7 @@ using api.Enums;
 using api.Models;
 using api.Models.Entity.NormalDB;
 using api.Models.LprData;
+using api.utils;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
@@ -43,7 +44,7 @@ namespace api.Services.Gates
                     return;
                 }
 
-                parkingRecords.exitTime = DateTime.Now;
+                parkingRecords.exitTime = TimeLoader.GetTime();
                 normalDataBaseContext.ParkingRecords.Update(parkingRecords);
                 await normalDataBaseContext.SaveChangesAsync();
 
@@ -54,16 +55,22 @@ namespace api.Services.Gates
                 if (lastPayment.paymentStatus == PaymentStatus.Generated)
                 {
                     lastPayment.amount = price;
-                    //Mark the paymnet is paid if it didn't make a pre payment before exit for demo purpose
-                    lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Completed;
-                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? DateTime.Now : DateTime.Now;
-                    lastPayment.paymentMethodType = lastPayment.paymentStatus == PaymentStatus.Completed ? PaymentMethodType.Free : PaymentMethodType.Cash;
-                    lastPayment.paymentMethod = lastPayment.paymentStatus == PaymentStatus.Completed ? PaymentMethod.Free : PaymentMethod.PaymentMachine;
+                    // //Mark the paymnet is paid if it didn't make a pre payment before exit for demo purpose
+                    // lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Completed;
+                    // lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? TimeLoader.GetTime() : TimeLoader.GetTime();
+                    // lastPayment.paymentMethodType = price == 0 ? PaymentMethodType.Free : PaymentMethodType.Cash;
+                    // lastPayment.paymentMethod = price == 0 ? PaymentMethod.Free : PaymentMethod.PaymentMachine;
+                    // normalDataBaseContext.Payments.Update(lastPayment);
+                    // await normalDataBaseContext.SaveChangesAsync();
+                    lastPayment.paymentStatus = price == 0 ? PaymentStatus.Completed : PaymentStatus.Pending;
+                    lastPayment.paymentTime = lastPayment.paymentStatus == PaymentStatus.Completed ? TimeLoader.GetTime() : null;
+                    lastPayment.paymentMethodType = price == 0 ? PaymentMethodType.Free : null;
+                    lastPayment.paymentMethod = price == 0 ? PaymentMethod.Free : null;
                     normalDataBaseContext.Payments.Update(lastPayment);
                     await normalDataBaseContext.SaveChangesAsync();
                 }
 
-                if (lastPayment.paymentStatus == PaymentStatus.Completed && lastPayment.paymentTime != null && lastPayment.paymentTime.Value.AddMinutes(GracePeriodForPayment) < DateTime.Now)
+                if (lastPayment.paymentStatus == PaymentStatus.Completed && lastPayment.paymentTime != null && lastPayment.paymentTime.Value.AddMinutes(GracePeriodForPayment) < TimeLoader.GetTime())
                 {
                     //TODO: The vehicle has exceeded the grace period for payment, user will be charged for the extra hour
                     Console.WriteLine("The vehicle has exceeded the grace period for payment, user will be charged for the extra hour");
@@ -92,7 +99,7 @@ namespace api.Services.Gates
                 ParkingRecordSessions parkingRecordSessions = normalDataBaseContext.ParkingRecordSessions.FirstOrDefault(x => x.sessionID == parkingRecords.sessionID);
                 Console.WriteLine(JsonConvert.SerializeObject(parkingRecordSessions));
                 parkingRecordSessions.totalPrice = totalAmount;
-                parkingRecordSessions.EndedAt = DateTime.Now;
+                parkingRecordSessions.EndedAt = TimeLoader.GetTime();
                 normalDataBaseContext.ParkingRecordSessions.Update(parkingRecordSessions);
                 await normalDataBaseContext.SaveChangesAsync();
 

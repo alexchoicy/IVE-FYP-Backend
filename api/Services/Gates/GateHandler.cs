@@ -54,7 +54,7 @@ namespace api.Services.Gates
                     lotID = lprReceiveModel.lotID,
                     vehicleLicense = lprReceiveModel.vehicleLicense,
                     spaceType = spaceType,
-                    entryTime = DateTime.Now,
+                    entryTime = TimeLoader.GetTime(),
                     paymentID = payment.paymentID,
                     sessionID = sessionID,
                     reservationID = reservations == null ? null : reservations.reservationID,
@@ -74,7 +74,7 @@ namespace api.Services.Gates
             {
                 vehicleLicense = lprReceiveModel.vehicleLicense,
                 lotID = lprReceiveModel.lotID,
-                CreatedAt = DateTime.Now,
+                CreatedAt = TimeLoader.GetTime(),
             };
 
             normalDataBaseContext.ParkingRecordSessions.Add(parkingRecordSessions);
@@ -87,7 +87,7 @@ namespace api.Services.Gates
         {
             IEnumerable<Reservations> reservations = normalDataBaseContext.Reservations.Where(
                 x => x.vehicleID == vehicles.vehicleID &&
-                x.startTime.Date == DateTime.Now.Date &&
+                x.startTime.Date == TimeLoader.GetTime().Date &&
                 x.reservationStatus == ReservationStatus.PAID &&
                 x.spaceType == spaceType &&
                 x.lotID == lprReceiveModel.lotID
@@ -99,7 +99,7 @@ namespace api.Services.Gates
             }
 
             Reservations? validReservation = reservations.FirstOrDefault(
-                x => x.startTime.AddMinutes(-5) <= DateTime.Now && x.startTime.AddMinutes(30) >= DateTime.Now
+                x => x.startTime.AddMinutes(-5) <= TimeLoader.GetTime() && x.startTime.AddMinutes(30) >= TimeLoader.GetTime()
             );
 
             return validReservation;
@@ -132,8 +132,8 @@ namespace api.Services.Gates
         protected decimal GetLastRecordPrices(IEnumerable<LotPrices> lotPrices, ParkingRecords parkingRecords, Reservations? reservation = null, decimal discount = 0)
         {
             decimal price = 0;
-            int totalHours = (int)(DateTime.Now - parkingRecords.entryTime).TotalHours;
-            int totalMinutes = (int)(DateTime.Now - parkingRecords.entryTime).TotalMinutes % 60;
+            int totalHours = (int)(TimeLoader.GetTime() - parkingRecords.entryTime).TotalHours;
+            int totalMinutes = (int)(TimeLoader.GetTime() - parkingRecords.entryTime).TotalMinutes % 60;
 
             if (totalMinutes > GracePeriodForPayment)
             {
@@ -147,7 +147,7 @@ namespace api.Services.Gates
                 Console.WriteLine("1) No reservation");
                 price = CalculatePriceWithoutReservation(totalHours, lotPrices);
             }
-            else if (DateTime.Now <= reservation.endTime.AddMinutes(GracePeriodForPayment))
+            else if (TimeLoader.GetTime() <= reservation.endTime.AddMinutes(GracePeriodForPayment))
             {
                 Console.WriteLine("2) Reservation is not expired");
                 price = CalculatePriceWithReservation(totalHours, lotPrices, discount);
@@ -173,7 +173,7 @@ namespace api.Services.Gates
 
             for (int i = 0; i < totalHours; i++)
             {
-                string timeString = (DateTime.Now - TimeSpan.FromHours(totalHours - i)).ToString("HH:00");
+                string timeString = (TimeLoader.GetTime() - TimeSpan.FromHours(totalHours - i)).ToString("HH:00");
                 decimal hourPrice = lotPrices.FirstOrDefault(lp => lp.time == timeString)?.price ?? 0;
                 price += hourPrice;
             }
