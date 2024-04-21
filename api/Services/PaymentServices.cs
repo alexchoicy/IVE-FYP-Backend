@@ -104,7 +104,7 @@ namespace api.Services
             //             lotID = parkingRecord?.lotID ?? 0,
             //             lotName = parkingLot.name,
             //             spaceType = parkingRecord?.spaceType.ToString() ?? "",
-            //             entryTime = parkingRecord?.entryTime ?? DateTime.Now,
+            //             entryTime = parkingRecord?.entryTime ?? TimeLoader.GetTime(),
             //             exitTime = parkingRecord?.exitTime,
             //             vehicleLicense = parkingRecord?.vehicleLicense ?? ""
             //         };
@@ -218,7 +218,7 @@ namespace api.Services
         //     payment.paymentMethod = paymentMethod;
         //     payment.paymentMethodType = paymentMethodType;
         //     payment.paymentStatus = PaymentStatus.Completed;
-        //     payment.paymentTime = DateTime.Now;
+        //     payment.paymentTime = TimeLoader.GetTime();
         //
         //     normalDataBaseContext.SaveChanges();
         //
@@ -241,13 +241,13 @@ namespace api.Services
                     IEnumerable<LotPrices> electriclotPrices =
                         JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.electricSpacePrices);
                     totalPrices = PaymentUtils.CalculateParkingFee(electriclotPrices, parkingRecord.entryTime,
-                        parkingRecord.exitTime ?? DateTime.Now, discount);
+                        parkingRecord.exitTime ?? TimeLoader.GetTime(), discount);
                     break;
                 default:
                     IEnumerable<LotPrices> regularlotPrices =
                         JsonConvert.DeserializeObject<IEnumerable<LotPrices>>(parkingLot.regularSpacePrices);
                     totalPrices = PaymentUtils.CalculateParkingFee(regularlotPrices, parkingRecord.entryTime,
-                        parkingRecord.exitTime ?? DateTime.Now, discount);
+                        parkingRecord.exitTime ?? TimeLoader.GetTime(), discount);
                     break;
             }
 
@@ -283,8 +283,8 @@ namespace api.Services
                     continue;
                 }
 
-                int totalHours = (int)(DateTime.Now - record.entryTime).TotalHours;
-                int totalMinutes = (int)(DateTime.Now - record.entryTime).TotalMinutes % 60;
+                int totalHours = (int)(TimeLoader.GetTime() - record.entryTime).TotalHours;
+                int totalMinutes = (int)(TimeLoader.GetTime() - record.entryTime).TotalMinutes % 60;
 
                 if (totalMinutes > 15)
                 {
@@ -297,7 +297,7 @@ namespace api.Services
                     Console.WriteLine("1) No reservation");
                     price = CalculatePriceWithoutReservation(totalHours, lotPrices);
                 }
-                else if (DateTime.Now <= record.reservation.endTime.AddMinutes(30))
+                else if (TimeLoader.GetTime() <= record.reservation.endTime.AddMinutes(30))
                 {
                     Console.WriteLine("2) Reservation is not expired");
                     price = CalculatePriceWithReservation(totalHours, lotPrices, parkinglot.reservedDiscount);
@@ -356,7 +356,7 @@ namespace api.Services
                     record.reservation.reservationStatus = ReservationStatus.COMPLETED;
                     normalDataBaseContext.SaveChanges();
                 }
-                record.payment.paymentTime = DateTime.Now;
+                record.payment.paymentTime = TimeLoader.GetTime();
                 record.payment.paymentMethod = PaymentMethod.App;
                 record.payment.paymentMethodType = paymentMethodType;
                 record.payment.paymentStatus = PaymentStatus.Completed;
@@ -372,7 +372,7 @@ namespace api.Services
 
             for (int i = 0; i < totalHours; i++)
             {
-                string timeString = (DateTime.Now - TimeSpan.FromHours(totalHours - i)).ToString("HH:00");
+                string timeString = (TimeLoader.GetTime() - TimeSpan.FromHours(totalHours - i)).ToString("HH:00");
                 decimal hourPrice = lotPrices.FirstOrDefault(lp => lp.time == timeString)?.price ?? 0;
                 price += hourPrice;
             }
